@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些基于位置信息服务(Location-Based Service,LBS)的应用。'><title>基于Redis GEO实现的LBS功能</title>
+
+<link rel='canonical' href='https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/'>
+
+<link rel="stylesheet" href="/scss/style.min.css"><meta property='og:title' content='基于Redis GEO实现的LBS功能'>
+<meta property='og:description' content='GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些基于位置信息服务(Location-Based Service,LBS)的应用。'>
+<meta property='og:url' content='https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/'>
+<meta property='og:site_name' content='Example Site'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='redis' /><meta property='article:published_time' content='2021-03-09T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2021-03-09T00:00:00&#43;00:00'/><meta property='og:image' content='https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be.jpg' />
+<meta name="twitter:title" content="基于Redis GEO实现的LBS功能">
+<meta name="twitter:description" content="GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些基于位置信息服务(Location-Based Service,LBS)的应用。"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be.jpg' />
+    </head>
+    <body class="
+    article-page has-toc
+">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex 
+    
+        extended
+    
+">
+    
+        <div id="article-toolbar">
+            <a href="https://weekthree.github.io/" class="back-home">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="15 6 9 12 15 18" />
+</svg>
+
+
+
+                <span>返回</span>
+            </a>
+        </div>
+    
+<main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/">
+                <img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be_hucaf497879fd88850870101187042854f_810097_800x0_resize_q75_box.jpg"
+                        srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be_hucaf497879fd88850870101187042854f_810097_800x0_resize_q75_box.jpg 800w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be_hucaf497879fd88850870101187042854f_810097_1600x0_resize_q75_box.jpg 1600w"
+                        width="800" 
+                        height="450" 
+                        loading="lazy"
+                        alt="Featured image of post 基于Redis GEO实现的LBS功能" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/redis/" >
+                redis
+            </a>
+        
+    </header>
+    
+
+    <h2 class="article-title">
+        <a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/">基于Redis GEO实现的LBS功能</a>
+    </h2>
+
+    
+    <h3 class="article-subtitle">
+        GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些基于位置信息服务(Location-Based Service,LBS)的应用。
+    </h3>
+    <footer class="article-time">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+        <time class="article-time--published">2021-03-09</time>
+    </footer></div>
+</header>
+
+    <section class="article-content">
+    <h1 id="介绍">介绍</h1>
+<p>Redis除了5大基本数据类型：String、List、Hash、Set和Sorted Set。还提供了3种拓展数据类型，分别是Bitmap、HyperLogLog和GEO。</p>
+<p>GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些**基于位置信息服务(Location-Based Service,LBS)**的应用。例如打车软件获得离用户最近的车辆信息。或者根据用户点阅的物件展示周边距离最近的物件。利用GEO和经纬度信息可以很简单的获取到数据。</p>
+<h1 id="如何使用">如何使用</h1>
+<h2 id="数据存储redis">数据存储Redis</h2>
+<p>使用前，需要将经纬度数据准备好，使用以下命令存储到Redis中。</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">GEOADD key longitude latitude member <span class="o">[</span>longitude latitude member ...<span class="o">]</span>
+</code></pre></div><p>例如，物件ID是1001的经纬度信息为114.143701,22.408597</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">GEOADD data:locations 114.143701 22.408597 <span class="m">1001</span> 
+</code></pre></div><p>将所有数据插入到Redis后，我们就可以开始获取想要的数据了。</p>
+<h2 id="获取范围内的数据">获取范围内的数据</h2>
+<h3 id="根据经纬度">根据经纬度</h3>
+<p>例如，我们想根据经纬度获得离它5km范围最近的三笔数据，按距离由近到远排序。</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEORADIUS data:locations 114.152801 22.411597 <span class="m">5</span> km ASC COUNT <span class="m">3</span>
+<span class="m">1003</span>
+<span class="m">1001</span>
+<span class="m">1002</span>
+</code></pre></div><p>返回的数据就是按直线距离排序好的成员ID。其中参数<code>5 km</code>就是限制距离范围。支持多种单位长度</p>
+<ul>
+<li>m表中单位为米</li>
+<li>km表示千米</li>
+<li>mi表示英里</li>
+<li>ft表示为英尺</li>
+</ul>
+<h3 id="根据已有成员">根据已有成员</h3>
+<p>也可以直接根据已有成员的经纬度获得数据</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEORADIUSBYMEMBER  data:locations <span class="m">1001</span> <span class="m">5</span> km ASC COUNT <span class="m">3</span> WITHDIST WITHCOORD
+<span class="m">1001</span>
+0.0000
+114.14370328187942505
+22.40859655827627961
+<span class="m">1002</span>
+1.1170
+114.14270013570785522
+22.41859603324986239
+<span class="m">1003</span>
+1.4382
+114.15269941091537476
+22.41849717912464968
+</code></pre></div><p>这里我们是直接根据已有成员的经纬度获得的数据，输入的参数是成员的ID。
+其中通过增加参数获得额外的信息</p>
+<ul>
+<li>WITHDIST	返回与给定目标的直线距离</li>
+<li>WITHCOORD	返回经纬度信息</li>
+</ul>
+<p>需要注意的是，ID为1001的自身也会一并返回。</p>
+<h2 id="heading"></h2>
+<h2 id="计算距离">计算距离</h2>
+<p>根据两个成员计算距离</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEODIST data:locations <span class="m">1001</span> <span class="m">1002</span> m
+1116.9774
+</code></pre></div><p>返回的结果为1116.9774，单位为米，同样的，可以通过参数指定单位。
+和手写的计算距离的函数对比一下结果。</p>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$lng1</span> <span class="o">=</span> <span class="mf">114.14370328187942505</span><span class="p">;</span>
+<span class="nv">$lat1</span> <span class="o">=</span> <span class="mf">22.40859655827627961</span><span class="p">;</span>
+<span class="nv">$lng2</span> <span class="o">=</span> <span class="mf">114.14270013570785522</span><span class="p">;</span>
+<span class="nv">$lat2</span> <span class="o">=</span> <span class="mf">22.41859603324986239</span><span class="p">;</span>
+
+<span class="c1">//将角度转为狐度
+</span><span class="c1"></span><span class="nv">$radLat1</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lat1</span><span class="p">);</span><span class="c1">//deg2rad()函数将角度转换为弧度
+</span><span class="c1"></span><span class="nv">$radLat2</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lat2</span><span class="p">);</span>
+<span class="nv">$radLng1</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lng1</span><span class="p">);</span>
+<span class="nv">$radLng2</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lng2</span><span class="p">);</span>
+<span class="nv">$a</span> <span class="o">=</span> <span class="nv">$radLat1</span> <span class="o">-</span> <span class="nv">$radLat2</span><span class="p">;</span>
+<span class="nv">$b</span> <span class="o">=</span> <span class="nv">$radLng1</span> <span class="o">-</span> <span class="nv">$radLng2</span><span class="p">;</span>
+<span class="nv">$s</span> <span class="o">=</span> <span class="nx">round</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="nx">asin</span><span class="p">(</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat2</span><span class="p">)</span> <span class="o">*</span> <span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$b</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span> <span class="o">*</span> <span class="mf">6378.137</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
+<span class="k">echo</span> <span class="nv">$s</span><span class="p">;</span>
+</code></pre></div><p>返回结果为<code>1118</code>米。</p>
+<h1 id="heading-1"></h1>
+<h1 id="实现原理">实现原理</h1>
+<p>GEO 类型是把经纬度所在的区间编码作为 Sorted Set 中元素的权重分数，把和经纬度相关的 ID 作为 Sorted Set 中元素本身的值保存下来，本质上还是使用了有序集合存储数据。 这样相邻经纬度的查询就可以通过编码值的大小范围查询来实现了。<br>
+为了能高效地对经纬度进行比较，Redis 采用了业界广泛使用的 GeoHash 编码方法。
+GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
+<img src="https://cdn.nlark.com/yuque/0/2021/png/2561634/1632816877696-782efb4f-e479-4739-acba-9b2418fa9f05.png#clientId=u0e3081db-b7e6-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=325&amp;id=pMFi8&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=325&amp;originWidth=1215&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=22618&amp;status=done&amp;style=none&amp;taskId=u940abe7c-5130-498f-90ac-ec0e94f96ca&amp;title=&amp;width=1215" alt="image.png"  /></p>
+<h1 id="heading-2"></h1>
+<h1 id="使用场景">使用场景</h1>
+<p>利用GEO类型，可以很方便的获得计算距离的数据
+<img src="https://cdn.nlark.com/yuque/0/2021/png/2561634/1632824267156-ca64fd4c-d646-4fb3-bb20-35c278f9bac5.png#clientId=u04fbd14e-2e63-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=356&amp;id=XKG6c&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=356&amp;originWidth=477&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=213933&amp;status=done&amp;style=none&amp;taskId=u11896ccd-cc6d-45f2-8ec1-839f1072d47&amp;title=&amp;width=477" alt="image.png"  /></p>
+<p>还有这种按距离由近及远取周边物件的。
+<img src="https://cdn.nlark.com/yuque/0/2021/png/2561634/1632818047127-1c5f6665-1fe8-4831-9c4b-2a0cbf294950.png#clientId=u04fbd14e-2e63-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=550&amp;id=Wgdrb&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=550&amp;originWidth=1171&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=280032&amp;status=done&amp;style=none&amp;taskId=u2a237354-f1ac-4382-973b-8aefaada4c7&amp;title=&amp;width=1171" alt="image.png"  /></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/redis/">redis</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+    
+</article>
+
+    <aside class="related-contents--wrapper">
+    
+    
+</aside>
+
+     
+     
+        
+    <div class="disqus-container">
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "hugo-theme-stack" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (DISQUS) {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2022 Example Site
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="2.5.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css"integrity="sha256-c0uckgykQ9v5k&#43;IqViZOZKc47Jn7KQil4/MP3ySA3F8="crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css"integrity="sha256-SBLU4vv6CA6lHsZ1XyTdhyjJxCjPif/TRkjnsyGAGnE="crossorigin="anonymous"
+            >
+
+            </main>
+    
+        <aside class="sidebar right-sidebar sticky">
+            <section class="widget archives">
+                <div class="widget-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+                </div>
+                <h2 class="widget-title section-title">目录</h2>
+                
+                <div class="widget--toc">
+                    <nav id="TableOfContents">
+  <ol>
+    <li><a href="#数据存储redis">数据存储Redis</a></li>
+    <li><a href="#获取范围内的数据">获取范围内的数据</a>
+      <ol>
+        <li><a href="#根据经纬度">根据经纬度</a></li>
+        <li><a href="#根据已有成员">根据已有成员</a></li>
+      </ol>
+    </li>
+    <li><a href="#heading"></a></li>
+    <li><a href="#计算距离">计算距离</a></li>
+  </ol>
+</nav>
+                </div>
+            </section>
+        </aside>
+    
+
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.5/dist/vibrant.min.js"integrity="sha256-5NovOZc4iwiAWTYIFiIM7DxKUXKWvpVEuMEPLzcm5/g="crossorigin="anonymous"
+                defer="false"
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>redis on Example Site</title>
+    <link>https://weekthree.github.io/categories/redis/</link>
+    <description>Recent content in redis on Example Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 09 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/categories/redis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于Redis GEO实现的LBS功能</title>
+      <link>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</link>
+      <pubDate>Tue, 09 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</guid>
+      <description>介绍 Redis除了5大基本数据类型：String、List、Hash、Set和Sorted Set。还提供了3种拓展数据类型，分别是Bitmap、HyperLogLog和GEO。
+GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些**基于位置信息服务(Location-Based Service,LBS)**的应用。例如打车软件获得离用户最近的车辆信息。或者根据用户点阅的物件展示周边距离最近的物件。利用GEO和经纬度信息可以很简单的获取到数据。
+如何使用 数据存储Redis 使用前，需要将经纬度数据准备好，使用以下命令存储到Redis中。
+GEOADD key longitude latitude member [longitude latitude member ...] 例如，物件ID是1001的经纬度信息为114.143701,22.408597
+GEOADD data:locations 114.143701 22.408597 1001 将所有数据插入到Redis后，我们就可以开始获取想要的数据了。
+获取范围内的数据 根据经纬度 例如，我们想根据经纬度获得离它5km范围最近的三笔数据，按距离由近到远排序。
+&amp;gt; GEORADIUS data:locations 114.152801 22.411597 5 km ASC COUNT 3 1003 1001 1002 返回的数据就是按直线距离排序好的成员ID。其中参数5 km就是限制距离范围。支持多种单位长度
+ m表中单位为米 km表示千米 mi表示英里 ft表示为英尺  根据已有成员 也可以直接根据已有成员的经纬度获得数据
+&amp;gt; GEORADIUSBYMEMBER data:locations 1001 5 km ASC COUNT 3 WITHDIST WITHCOORD 1001 0.0000 114.14370328187942505 22.40859655827627961 1002 1.1170 114.14270013570785522 22.</description>
+    </item>
+    
+  </channel>
+</rss>
