@@ -3,22 +3,25 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://weekthree.github.io/</loc>
-    <lastmod>2021-03-09T00:00:00+00:00</lastmod>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/categories/</loc>
-    <lastmod>2021-03-09T00:00:00+00:00</lastmod>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/post/</loc>
-    <lastmod>2021-03-09T00:00:00+00:00</lastmod>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/tags/redis/</loc>
-    <lastmod>2021-03-09T00:00:00+00:00</lastmod>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/categories/redis/</loc>
-    <lastmod>2021-03-09T00:00:00+00:00</lastmod>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</loc>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/tags/</loc>
-    <lastmod>2021-03-09T00:00:00+00:00</lastmod>
+    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</loc>
     <lastmod>2021-03-09T00:00:00+00:00</lastmod>

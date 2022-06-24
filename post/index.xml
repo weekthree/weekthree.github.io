@@ -6,7 +6,24 @@
     <description>Recent content in Posts on Example Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 09 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 09 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Redis 6.0新特性</title>
+      <link>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</link>
+      <pubDate>Tue, 09 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</guid>
+      <description>IO 多线程 Redis 一直被大家熟知的就是它的单线程架构，虽然有些命令操作可以用后台线程或子进程执行（比如数据删除、快照生成、AOF 重写），但是，从网络 IO 处理到实际的读写命令处理，都是由单个线程完成的。
+在 6.0 版本之前，Redis采用了采用了多路 I/O 复用技术，这里的多路指的是多个 socket 网络连接，复用指的是复用同一个线程。通过多路 I/O 复用技术在同一个线程中处理多个 I/O 请求，尽量减少网络 I/O 的消耗，提升使用效率。 基于多路复用的Redis高性能IO模型 但随着网络硬件的性能提升，Redis的性能瓶颈有时会出现在网络 IO 的处理上，单个主线程处理网络请求的速度跟不上底层网络硬件的速度。
+在 6.0 版本中，Redis把请求网络包读写和解析也从主线程中剥离出来了。
+Redis 6.0 采用多个 IO 线程来处理网络请求，提高网络请求处理的并行度。但是对于读写命令，仍然使用单线程来处理。
+这样实现有两个好处：
+ 通过多个IO线程并行处理网络操作，解决网络处理瓶颈提升实例的整体处理性能。 读写命令继续使用单线程处理，可以避免上下文切换和不必要的线程之间引起的资源竞争，线程模型更简单。   处理流程 主线程和多 IO 线程的协作主要分成以下几个阶段：
+ 服务端和客户端建立 Socket 连接，并分配处理线程。 IO 线程读取并解析请求。 主线程执行请求操作。 IO线程回写 Socket 和主线程清空全局队列  在第2、4阶段，由于加入了 IO 多线程，多个 IO 线程并行处理读取与解析请求，以及回写 Socket 的操作都会很快。因此可以加速网络处理，进而提升实例的吞吐量。 IO多线程处理流程
+开启多线程 默认情况下，多线程是关闭的。如果需要启动，要在 redis.conf 进行以下配置。
+#启用多线程 io-threads-do-reads yes #设置线程个数 io-threads 6 需要注意的是，线程个数要小于实例所在的 CPU 核个数。对于 8 核 CPU 的机器，官方建议配置 6 个 IO 线程。 权限控制 在 Redis 6.</description>
+    </item>
+    
     <item>
       <title>基于Redis GEO实现的LBS功能</title>
       <link>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</link>

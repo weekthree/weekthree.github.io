@@ -6,7 +6,173 @@
         <description>Recent content on Example Site</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
-        <lastBuildDate>Tue, 09 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Tue, 09 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>Redis 6.0新特性</title>
+        <link>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</link>
+        <pubDate>Tue, 09 Nov 2021 00:00:00 +0000</pubDate>
+        
+        <guid>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</guid>
+        <description>&lt;img src="https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/1.jpg" alt="Featured image of post Redis 6.0新特性" /&gt;&lt;h2 id=&#34;io-多线程&#34;&gt;IO 多线程&lt;/h2&gt;
+&lt;p&gt;Redis 一直被大家熟知的就是它的单线程架构，虽然有些命令操作可以用后台线程或子进程执行（比如数据删除、快照生成、AOF 重写），但是，从网络 IO 处理到实际的读写命令处理，都是由单个线程完成的。&lt;/p&gt;
+&lt;p&gt;在 6.0 版本之前，Redis采用了采用了多路 I/O 复用技术，这里的多路指的是多个 socket 网络连接，复用指的是复用同一个线程。通过多路 I/O 复用技术在同一个线程中处理多个 I/O 请求，尽量减少网络 I/O 的消耗，提升使用效率。
+&lt;figure style=&#34;flex-grow: 154; flex-basis: 370px&#34;&gt;
+		&lt;a href=&#34;https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png&#34; data-size=&#34;1157x750&#34;&gt;&lt;img src=&#34;https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png&#34;
+				srcset=&#34;https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_480x0_resize_box_2.png 480w, https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_1024x0_resize_box_2.png 1024w&#34;
+				width=&#34;1157&#34;
+				height=&#34;750&#34;
+				loading=&#34;lazy&#34;
+				alt=&#34;基于多路复用的Redis高性能IO模型&#34;&gt;
+		&lt;/a&gt;
+		
+		&lt;figcaption&gt;基于多路复用的Redis高性能IO模型&lt;/figcaption&gt;
+		
+	&lt;/figure&gt;
+但随着网络硬件的性能提升，Redis的性能瓶颈有时会出现在网络 IO 的处理上，单个主线程处理网络请求的速度跟不上底层网络硬件的速度。&lt;/p&gt;
+&lt;p&gt;在 6.0 版本中，Redis把请求网络包读写和解析也从主线程中剥离出来了。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Redis 6.0 采用多个 IO 线程来处理网络请求，提高网络请求处理的并行度。但是对于读写命令，仍然使用单线程来处理。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;这样实现有两个好处：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通过多个IO线程并行处理网络操作，解决网络处理瓶颈提升实例的整体处理性能。&lt;/li&gt;
+&lt;li&gt;读写命令继续使用单线程处理，可以避免上下文切换和不必要的线程之间引起的资源竞争，线程模型更简单。
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;处理流程&#34;&gt;处理流程&lt;/h3&gt;
+&lt;p&gt;主线程和多 IO 线程的协作主要分成以下几个阶段：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;服务端和客户端建立 Socket 连接，并分配处理线程。&lt;/li&gt;
+&lt;li&gt;IO 线程读取并解析请求。&lt;/li&gt;
+&lt;li&gt;主线程执行请求操作。&lt;/li&gt;
+&lt;li&gt;IO线程回写 Socket 和主线程清空全局队列&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;在第2、4阶段，由于加入了 IO 多线程，多个 IO 线程并行处理读取与解析请求，以及回写 Socket 的操作都会很快。因此可以加速网络处理，进而提升实例的吞吐量。
+&lt;figure style=&#34;flex-grow: 99; flex-basis: 238px&#34;&gt;
+		&lt;a href=&#34;https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png&#34; data-size=&#34;573x577&#34;&gt;&lt;img src=&#34;https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png&#34;
+				srcset=&#34;https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_480x0_resize_box_2.png 480w, https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_1024x0_resize_box_2.png 1024w&#34;
+				width=&#34;573&#34;
+				height=&#34;577&#34;
+				loading=&#34;lazy&#34;
+				alt=&#34;IO多线程处理流程&#34;&gt;
+		&lt;/a&gt;
+		
+		&lt;figcaption&gt;IO多线程处理流程&lt;/figcaption&gt;
+		
+	&lt;/figure&gt;&lt;/p&gt;
+&lt;h3 id=&#34;开启多线程&#34;&gt;开启多线程&lt;/h3&gt;
+&lt;p&gt;默认情况下，多线程是关闭的。如果需要启动，要在 &lt;code&gt;redis.conf&lt;/code&gt; 进行以下配置。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#启用多线程&lt;/span&gt;
+io-threads-do-reads yes
+
+&lt;span class=&#34;c1&#34;&gt;#设置线程个数&lt;/span&gt;
+io-threads  &lt;span class=&#34;m&#34;&gt;6&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;需要注意的是，线程个数要小于实例所在的 CPU 核个数。对于 8 核 CPU 的机器，官方建议配置 6 个 IO 线程。
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;权限控制&#34;&gt;权限控制&lt;/h2&gt;
+&lt;p&gt;在 Redis 6.0 版本之前，只能通过创建一个密码来进行安全控制。只要知道密码，就能执行类似 &lt;code&gt;KEYS、FLUSHDB、FLUSHALL&lt;/code&gt; 等各种危险的操作。&lt;/p&gt;
+&lt;p&gt;Redis 6.0 提供了更加细粒度的访问权限控制。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;升级到 6.0 版本后，配置文件只设置了密码，客户端登录的时候是需要指定默认用户名&lt;code&gt;default&lt;/code&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;创建不同用户&#34;&gt;创建不同用户&lt;/h3&gt;
+&lt;p&gt;Redis 6.0 版本之前所有使用者通过一个密码登陆使用，没有账号的概念。而在 Redis 6.0 可以通过使用 &lt;code&gt;ACL SETUSER&lt;/code&gt; 给使用者创建不同的用户账号。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#创建并启用samuel账号，密码为123&lt;/span&gt;
+ACL SETUSER samuel on &amp;gt;123
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;根据命令操作设置访问权限&#34;&gt;根据命令操作设置访问权限&lt;/h3&gt;
+&lt;p&gt;Redis 6.0 支持以用户为粒度设置命令操作的访问权限。&lt;!-- raw HTML omitted --&gt;例如：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#给用户 samuel 开启 get 操作的权限。&lt;/span&gt;
+ACL SETUSER samuel +get
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;根据类型设置访问权限&#34;&gt;根据类型设置访问权限&lt;/h3&gt;
+&lt;p&gt;也可以根据不同的数据类型来给用户授权&lt;!-- raw HTML omitted --&gt;例如：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#限制用户只能操作 Hash 类的命令，不能调用 String 类型的命令&lt;/span&gt;
+ACL SETUSER samuel +@hash -@string
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;根据key设置访问权限&#34;&gt;根据key设置访问权限&lt;/h3&gt;
+&lt;p&gt;使用波浪号 &amp;ldquo;~&amp;rdquo; 和 key 的前缀来表示访问控制的 key。&lt;!-- raw HTML omitted --&gt;例如：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span class=&#34;c1&#34;&gt;#设置用户 samuel 只能对以 &amp;#34;user:&amp;#34; 为前缀的 key 进行命令操作&lt;/span&gt;
+ACL SETUSER samuel ~user:* +@all
+
+&lt;span class=&#34;c1&#34;&gt;#设置用户 samuel 可以进行所有操作&lt;/span&gt;
+ACL SETUSER samuel ~* +@all
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Redis 6.0 可以创建不同用户来访问实例，而且可以基于用户和 key 的粒度，设置某个用户对某些 key 允许或禁止执行的命令操作。&lt;/p&gt;
+&lt;p&gt;这样一来，我们在有多用户的 Redis 应用场景下，就可以非常方便和灵活地为不同用户设置不同级别的命令操作权限，这对于提供安全的 Redis 访问非常有帮助。&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;操作&lt;/th&gt;
+&lt;th&gt;作用&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;+&lt;!-- raw HTML omitted --&gt;&lt;/td&gt;
+&lt;td&gt;将一个命令添加到用户可以调用的命令列表中&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;-&lt;!-- raw HTML omitted --&gt;&lt;/td&gt;
+&lt;td&gt;将一个命令从用户可以调用的命令列表中移除&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;+@&lt;!-- raw HTML omitted --&gt;&lt;/td&gt;
+&lt;td&gt;将一类命令添加到用户可以调用的命令列表中&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;-@&lt;!-- raw HTML omitted --&gt;&lt;/td&gt;
+&lt;td&gt;将一类命令从用户可以调用的命令列表中移除&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;+@all&lt;/td&gt;
+&lt;td&gt;允许调用所有的命令操作&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;-@all&lt;/td&gt;
+&lt;td&gt;禁止调用所有命令操作&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;客户端缓存&#34;&gt;客户端缓存&lt;/h2&gt;
+&lt;p&gt;Redis 6.0 新增了跟踪 （Tracking）功能，也就是实现了服务端协助的客户端缓存，业务应用中 Redis 客户端可以把读取的数据缓存在业务应用本地了，应用就可以直接在本地快速读取数据了。&lt;/p&gt;
+&lt;p&gt;Tracking 功能通过下面两种模式，来解决客户端对已缓存但失效的数据同步处理。
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;普通模式&#34;&gt;普通模式&lt;/h3&gt;
+&lt;p&gt;这种模式下，实例会在客户端记录客户端读取过的 key，并检测 key 是否有修改。一旦 key 的值发生变化，服务端会给客户端发送 invalidate 消息。通知客户端缓存失效，客户端下次请求就需要从服务端获取最新数据。&lt;/p&gt;
+&lt;p&gt;通过以下命令开启或关闭普通模式下 Tracking 功能。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;CLIENT TRACKING ON&lt;span class=&#34;p&#34;&gt;|&lt;/span&gt;OFF
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;需要注意的是，为了节省服务端的内存空间，对于客户端不再访问的 key ，服务端是不会记录这个 key 的修改情况的。就算是之前已经发送过 invalidate 消息的key，如果此后客户端没有再次执行读命令。之后这个 key 再被修改，服务端就不会再次给客户端发送 invalidate 消息。&lt;/p&gt;
+&lt;p&gt;总结：Server 端全局唯一的表（Invalidation Table）记录每个Client访问的Key，当发生变更时，向client推送数据过期消息。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;优点：只对Client发送其访问过的被修改的数据&lt;/li&gt;
+&lt;li&gt;缺点：Server端需要额外存储较大的数据量
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;广播模式&#34;&gt;广播模式&lt;/h3&gt;
+&lt;p&gt;这种模式下，服务端会给客户端广播所有 key 的失效情况。&lt;/p&gt;
+&lt;p&gt;为了防止 key 在频繁修改的情况下，服务端发送大量失效广播消息造成大量网络带宽资源被消耗。客户端需要跟踪指定前缀的 key，这样让服务端针对性的发送失效信息给客户端。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;CLIENT TRACKING ON BCAST PREFIX user
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;类似上面的命令操作。只有更新了 user: 前缀的key，客户端才会收到 invalidate 消息。&lt;!-- raw HTML omitted --&gt;和普通模式不同，就算客户端还没有读取过 key，只要注册了跟踪前缀，服务端就会把这个 key 失效消息通知给客户端。&lt;/p&gt;
+&lt;p&gt;总结：客户端订阅 key 前缀的广播，服务端记录 key 前缀与 client 的对应关系。当相匹配的 key 发生变化时通知 client&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;优点：服务端记录信息比较少&lt;/li&gt;
+&lt;li&gt;缺点：client 会收到自己未访问过的 key 的失效通知
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;resp3-协议&#34;&gt;RESP3 协议&lt;/h2&gt;
+&lt;p&gt;RESP（Redis Serialization Protocol）是 Redis 服务端与客户端之间通信的协议。RES P协议在Redis 1.2中引入，在Redis 2.0中成为与Redis服务器通信的标准方式。而 Redis 6 开始在兼容 RESP2 的基础上，开始支持 RESP3。&lt;/p&gt;
+&lt;p&gt;推出 RESP3 的目的：一是因为希望能为客户端提供更多的语义化响应，以开发使用旧协议难以实现的功能；另一个原因就是为了实现上面提到的客户端缓存功能功能。
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
+&lt;p&gt;面向网络处理的多 IO 线程可以提高网络请求处理的速度，而客户端缓存可以让应用直接在客户端本地读取数据，这两个特性可以提升 Redis 的性能。&lt;/p&gt;
+&lt;p&gt;除此之外，细粒度权限控制让 Redis 可以按照命令粒度控制不同用户的访问权限，加强了 Redis 的安全保护。RESP 3 协议则增强客户端的功能，可以让应用更加方便地使用 Redis 的不同数据类型。
+&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;极客时间《Redis 核心技术与实战》- 蒋德钧&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+        </item>
+        <item>
         <title>基于Redis GEO实现的LBS功能</title>
         <link>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</link>
         <pubDate>Tue, 09 Mar 2021 00:00:00 +0000</pubDate>
