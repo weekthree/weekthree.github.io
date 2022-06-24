@@ -12,18 +12,18 @@
         <pubDate>Tue, 09 Mar 2021 00:00:00 +0000</pubDate>
         
         <guid>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</guid>
-        <description>&lt;img src="https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be.jpg" alt="Featured image of post 基于Redis GEO实现的LBS功能" /&gt;&lt;h1 id=&#34;介绍&#34;&gt;介绍&lt;/h1&gt;
+        <description>&lt;img src="https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be.jpg" alt="Featured image of post 基于Redis GEO实现的LBS功能" /&gt;&lt;h2 id=&#34;介绍&#34;&gt;介绍&lt;/h2&gt;
 &lt;p&gt;Redis除了5大基本数据类型：String、List、Hash、Set和Sorted Set。还提供了3种拓展数据类型，分别是Bitmap、HyperLogLog和GEO。&lt;/p&gt;
 &lt;p&gt;GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些**基于位置信息服务(Location-Based Service,LBS)**的应用。例如打车软件获得离用户最近的车辆信息。或者根据用户点阅的物件展示周边距离最近的物件。利用GEO和经纬度信息可以很简单的获取到数据。&lt;/p&gt;
-&lt;h1 id=&#34;如何使用&#34;&gt;如何使用&lt;/h1&gt;
-&lt;h2 id=&#34;数据存储redis&#34;&gt;数据存储Redis&lt;/h2&gt;
+&lt;h2 id=&#34;如何使用&#34;&gt;如何使用&lt;/h2&gt;
+&lt;h3 id=&#34;数据存储redis&#34;&gt;数据存储Redis&lt;/h3&gt;
 &lt;p&gt;使用前，需要将经纬度数据准备好，使用以下命令存储到Redis中。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;GEOADD key longitude latitude member &lt;span class=&#34;o&#34;&gt;[&lt;/span&gt;longitude latitude member ...&lt;span class=&#34;o&#34;&gt;]&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;例如，物件ID是1001的经纬度信息为114.143701,22.408597&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;GEOADD data:locations 114.143701 22.408597 &lt;span class=&#34;m&#34;&gt;1001&lt;/span&gt; 
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;将所有数据插入到Redis后，我们就可以开始获取想要的数据了。&lt;/p&gt;
-&lt;h2 id=&#34;获取范围内的数据&#34;&gt;获取范围内的数据&lt;/h2&gt;
-&lt;h3 id=&#34;根据经纬度&#34;&gt;根据经纬度&lt;/h3&gt;
+&lt;h3 id=&#34;获取范围内的数据&#34;&gt;获取范围内的数据&lt;/h3&gt;
+&lt;h4 id=&#34;根据经纬度&#34;&gt;根据经纬度&lt;/h4&gt;
 &lt;p&gt;例如，我们想根据经纬度获得离它5km范围最近的三笔数据，按距离由近到远排序。&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&amp;gt; GEORADIUS data:locations 114.152801 22.411597 &lt;span class=&#34;m&#34;&gt;5&lt;/span&gt; km ASC COUNT &lt;span class=&#34;m&#34;&gt;3&lt;/span&gt;
 &lt;span class=&#34;m&#34;&gt;1003&lt;/span&gt;
@@ -36,7 +36,7 @@
 &lt;li&gt;mi表示英里&lt;/li&gt;
 &lt;li&gt;ft表示为英尺&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;根据已有成员&#34;&gt;根据已有成员&lt;/h3&gt;
+&lt;h4 id=&#34;根据已有成员&#34;&gt;根据已有成员&lt;/h4&gt;
 &lt;p&gt;也可以直接根据已有成员的经纬度获得数据&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&amp;gt; GEORADIUSBYMEMBER  data:locations &lt;span class=&#34;m&#34;&gt;1001&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;5&lt;/span&gt; km ASC COUNT &lt;span class=&#34;m&#34;&gt;3&lt;/span&gt; WITHDIST WITHCOORD
 &lt;span class=&#34;m&#34;&gt;1001&lt;/span&gt;
@@ -58,8 +58,7 @@
 &lt;li&gt;WITHCOORD	返回经纬度信息&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;需要注意的是，ID为1001的自身也会一并返回。&lt;/p&gt;
-&lt;h2 id=&#34;heading&#34;&gt;&lt;/h2&gt;
-&lt;h2 id=&#34;计算距离&#34;&gt;计算距离&lt;/h2&gt;
+&lt;h3 id=&#34;计算距离&#34;&gt;计算距离&lt;/h3&gt;
 &lt;p&gt;根据两个成员计算距离&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&amp;gt; GEODIST data:locations &lt;span class=&#34;m&#34;&gt;1001&lt;/span&gt; &lt;span class=&#34;m&#34;&gt;1002&lt;/span&gt; m
 1116.9774
@@ -80,18 +79,49 @@
 &lt;span class=&#34;nv&#34;&gt;$s&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;round&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;((&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;asin&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sqrt&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;pow&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sin&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$a&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;cos&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$radLat1&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;cos&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$radLat2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;nx&#34;&gt;pow&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nx&#34;&gt;sin&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nv&#34;&gt;$b&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;/&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;),&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)))&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;mf&#34;&gt;6378.137&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt; &lt;span class=&#34;mi&#34;&gt;1000&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;);&lt;/span&gt;
 &lt;span class=&#34;k&#34;&gt;echo&lt;/span&gt; &lt;span class=&#34;nv&#34;&gt;$s&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;;&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;返回结果为&lt;code&gt;1118&lt;/code&gt;米。&lt;/p&gt;
-&lt;h1 id=&#34;heading-1&#34;&gt;&lt;/h1&gt;
-&lt;h1 id=&#34;实现原理&#34;&gt;实现原理&lt;/h1&gt;
+&lt;h2 id=&#34;实现原理&#34;&gt;实现原理&lt;/h2&gt;
 &lt;p&gt;GEO 类型是把经纬度所在的区间编码作为 Sorted Set 中元素的权重分数，把和经纬度相关的 ID 作为 Sorted Set 中元素本身的值保存下来，本质上还是使用了有序集合存储数据。 这样相邻经纬度的查询就可以通过编码值的大小范围查询来实现了。&lt;br&gt;
 为了能高效地对经纬度进行比较，Redis 采用了业界广泛使用的 GeoHash 编码方法。
 GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
-&lt;img src=&#34;https://cdn.nlark.com/yuque/0/2021/png/2561634/1632816877696-782efb4f-e479-4739-acba-9b2418fa9f05.png#clientId=u0e3081db-b7e6-4&amp;amp;crop=0&amp;amp;crop=0&amp;amp;crop=1&amp;amp;crop=1&amp;amp;from=paste&amp;amp;height=325&amp;amp;id=pMFi8&amp;amp;margin=%5Bobject%20Object%5D&amp;amp;name=image.png&amp;amp;originHeight=325&amp;amp;originWidth=1215&amp;amp;originalType=binary&amp;amp;ratio=1&amp;amp;rotation=0&amp;amp;showTitle=false&amp;amp;size=22618&amp;amp;status=done&amp;amp;style=none&amp;amp;taskId=u940abe7c-5130-498f-90ac-ec0e94f96ca&amp;amp;title=&amp;amp;width=1215&#34; alt=&#34;image.png&#34;  /&gt;&lt;/p&gt;
-&lt;h1 id=&#34;heading-2&#34;&gt;&lt;/h1&gt;
-&lt;h1 id=&#34;使用场景&#34;&gt;使用场景&lt;/h1&gt;
+&lt;figure style=&#34;flex-grow: 373; flex-basis: 897px&#34;&gt;
+		&lt;a href=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333.png&#34; data-size=&#34;1215x325&#34;&gt;&lt;img src=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333.png&#34;
+				srcset=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_480x0_resize_box_2.png 480w, https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_1024x0_resize_box_2.png 1024w&#34;
+				width=&#34;1215&#34;
+				height=&#34;325&#34;
+				loading=&#34;lazy&#34;
+				alt=&#34;GEO使用有序集合存储数据&#34;&gt;
+		&lt;/a&gt;
+		
+		&lt;figcaption&gt;GEO使用有序集合存储数据&lt;/figcaption&gt;
+		
+	&lt;/figure&gt;&lt;/p&gt;
+&lt;h2 id=&#34;使用场景&#34;&gt;使用场景&lt;/h2&gt;
 &lt;p&gt;利用GEO类型，可以很方便的获得计算距离的数据
-&lt;img src=&#34;https://cdn.nlark.com/yuque/0/2021/png/2561634/1632824267156-ca64fd4c-d646-4fb3-bb20-35c278f9bac5.png#clientId=u04fbd14e-2e63-4&amp;amp;crop=0&amp;amp;crop=0&amp;amp;crop=1&amp;amp;crop=1&amp;amp;from=paste&amp;amp;height=356&amp;amp;id=XKG6c&amp;amp;margin=%5Bobject%20Object%5D&amp;amp;name=image.png&amp;amp;originHeight=356&amp;amp;originWidth=477&amp;amp;originalType=binary&amp;amp;ratio=1&amp;amp;rotation=0&amp;amp;showTitle=false&amp;amp;size=213933&amp;amp;status=done&amp;amp;style=none&amp;amp;taskId=u11896ccd-cc6d-45f2-8ec1-839f1072d47&amp;amp;title=&amp;amp;width=477&#34; alt=&#34;image.png&#34;  /&gt;&lt;/p&gt;
+&lt;figure style=&#34;flex-grow: 133; flex-basis: 321px&#34;&gt;
+		&lt;a href=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4.png&#34; data-size=&#34;477x356&#34;&gt;&lt;img src=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4.png&#34;
+				srcset=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_480x0_resize_box_2.png 480w, https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_1024x0_resize_box_2.png 1024w&#34;
+				width=&#34;477&#34;
+				height=&#34;356&#34;
+				loading=&#34;lazy&#34;
+				alt=&#34;计算距离&#34;&gt;
+		&lt;/a&gt;
+		
+		&lt;figcaption&gt;计算距离&lt;/figcaption&gt;
+		
+	&lt;/figure&gt;&lt;/p&gt;
 &lt;p&gt;还有这种按距离由近及远取周边物件的。
-&lt;img src=&#34;https://cdn.nlark.com/yuque/0/2021/png/2561634/1632818047127-1c5f6665-1fe8-4831-9c4b-2a0cbf294950.png#clientId=u04fbd14e-2e63-4&amp;amp;crop=0&amp;amp;crop=0&amp;amp;crop=1&amp;amp;crop=1&amp;amp;from=paste&amp;amp;height=550&amp;amp;id=Wgdrb&amp;amp;margin=%5Bobject%20Object%5D&amp;amp;name=image.png&amp;amp;originHeight=550&amp;amp;originWidth=1171&amp;amp;originalType=binary&amp;amp;ratio=1&amp;amp;rotation=0&amp;amp;showTitle=false&amp;amp;size=280032&amp;amp;status=done&amp;amp;style=none&amp;amp;taskId=u2a237354-f1ac-4382-973b-8aefaada4c7&amp;amp;title=&amp;amp;width=1171&#34; alt=&#34;image.png&#34;  /&gt;&lt;/p&gt;
+&lt;figure style=&#34;flex-grow: 212; flex-basis: 510px&#34;&gt;
+		&lt;a href=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5.png&#34; data-size=&#34;1145x538&#34;&gt;&lt;img src=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5.png&#34;
+				srcset=&#34;https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_480x0_resize_box_2.png 480w, https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_1024x0_resize_box_2.png 1024w&#34;
+				width=&#34;1145&#34;
+				height=&#34;538&#34;
+				loading=&#34;lazy&#34;
+				alt=&#34;按距离排序获得数据&#34;&gt;
+		&lt;/a&gt;
+		
+		&lt;figcaption&gt;按距离排序获得数据&lt;/figcaption&gt;
+		
+	&lt;/figure&gt;&lt;/p&gt;
 </description>
         </item>
         <item>

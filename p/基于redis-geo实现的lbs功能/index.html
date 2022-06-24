@@ -107,18 +107,18 @@
 </header>
 
     <section class="article-content">
-    <h1 id="介绍">介绍</h1>
+    <h2 id="介绍">介绍</h2>
 <p>Redis除了5大基本数据类型：String、List、Hash、Set和Sorted Set。还提供了3种拓展数据类型，分别是Bitmap、HyperLogLog和GEO。</p>
 <p>GEO是Redis 3.2 版本中新增的专门面向LBS应用的一种数据类型。使用它我们可以非常方便的实现一些**基于位置信息服务(Location-Based Service,LBS)**的应用。例如打车软件获得离用户最近的车辆信息。或者根据用户点阅的物件展示周边距离最近的物件。利用GEO和经纬度信息可以很简单的获取到数据。</p>
-<h1 id="如何使用">如何使用</h1>
-<h2 id="数据存储redis">数据存储Redis</h2>
+<h2 id="如何使用">如何使用</h2>
+<h3 id="数据存储redis">数据存储Redis</h3>
 <p>使用前，需要将经纬度数据准备好，使用以下命令存储到Redis中。</p>
 <div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">GEOADD key longitude latitude member <span class="o">[</span>longitude latitude member ...<span class="o">]</span>
 </code></pre></div><p>例如，物件ID是1001的经纬度信息为114.143701,22.408597</p>
 <div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">GEOADD data:locations 114.143701 22.408597 <span class="m">1001</span> 
 </code></pre></div><p>将所有数据插入到Redis后，我们就可以开始获取想要的数据了。</p>
-<h2 id="获取范围内的数据">获取范围内的数据</h2>
-<h3 id="根据经纬度">根据经纬度</h3>
+<h3 id="获取范围内的数据">获取范围内的数据</h3>
+<h4 id="根据经纬度">根据经纬度</h4>
 <p>例如，我们想根据经纬度获得离它5km范围最近的三笔数据，按距离由近到远排序。</p>
 <div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEORADIUS data:locations 114.152801 22.411597 <span class="m">5</span> km ASC COUNT <span class="m">3</span>
 <span class="m">1003</span>
@@ -131,7 +131,7 @@
 <li>mi表示英里</li>
 <li>ft表示为英尺</li>
 </ul>
-<h3 id="根据已有成员">根据已有成员</h3>
+<h4 id="根据已有成员">根据已有成员</h4>
 <p>也可以直接根据已有成员的经纬度获得数据</p>
 <div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEORADIUSBYMEMBER  data:locations <span class="m">1001</span> <span class="m">5</span> km ASC COUNT <span class="m">3</span> WITHDIST WITHCOORD
 <span class="m">1001</span>
@@ -153,8 +153,7 @@
 <li>WITHCOORD	返回经纬度信息</li>
 </ul>
 <p>需要注意的是，ID为1001的自身也会一并返回。</p>
-<h2 id="heading"></h2>
-<h2 id="计算距离">计算距离</h2>
+<h3 id="计算距离">计算距离</h3>
 <p>根据两个成员计算距离</p>
 <div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEODIST data:locations <span class="m">1001</span> <span class="m">1002</span> m
 1116.9774
@@ -175,18 +174,49 @@
 <span class="nv">$s</span> <span class="o">=</span> <span class="nx">round</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="nx">asin</span><span class="p">(</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat2</span><span class="p">)</span> <span class="o">*</span> <span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$b</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span> <span class="o">*</span> <span class="mf">6378.137</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
 <span class="k">echo</span> <span class="nv">$s</span><span class="p">;</span>
 </code></pre></div><p>返回结果为<code>1118</code>米。</p>
-<h1 id="heading-1"></h1>
-<h1 id="实现原理">实现原理</h1>
+<h2 id="实现原理">实现原理</h2>
 <p>GEO 类型是把经纬度所在的区间编码作为 Sorted Set 中元素的权重分数，把和经纬度相关的 ID 作为 Sorted Set 中元素本身的值保存下来，本质上还是使用了有序集合存储数据。 这样相邻经纬度的查询就可以通过编码值的大小范围查询来实现了。<br>
 为了能高效地对经纬度进行比较，Redis 采用了业界广泛使用的 GeoHash 编码方法。
 GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
-<img src="https://cdn.nlark.com/yuque/0/2021/png/2561634/1632816877696-782efb4f-e479-4739-acba-9b2418fa9f05.png#clientId=u0e3081db-b7e6-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=325&amp;id=pMFi8&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=325&amp;originWidth=1215&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=22618&amp;status=done&amp;style=none&amp;taskId=u940abe7c-5130-498f-90ac-ec0e94f96ca&amp;title=&amp;width=1215" alt="image.png"  /></p>
-<h1 id="heading-2"></h1>
-<h1 id="使用场景">使用场景</h1>
+<figure style="flex-grow: 373; flex-basis: 897px">
+		<a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333.png" data-size="1215x325"><img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333.png"
+				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_480x0_resize_box_2.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_1024x0_resize_box_2.png 1024w"
+				width="1215"
+				height="325"
+				loading="lazy"
+				alt="GEO使用有序集合存储数据">
+		</a>
+		
+		<figcaption>GEO使用有序集合存储数据</figcaption>
+		
+	</figure></p>
+<h2 id="使用场景">使用场景</h2>
 <p>利用GEO类型，可以很方便的获得计算距离的数据
-<img src="https://cdn.nlark.com/yuque/0/2021/png/2561634/1632824267156-ca64fd4c-d646-4fb3-bb20-35c278f9bac5.png#clientId=u04fbd14e-2e63-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=356&amp;id=XKG6c&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=356&amp;originWidth=477&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=213933&amp;status=done&amp;style=none&amp;taskId=u11896ccd-cc6d-45f2-8ec1-839f1072d47&amp;title=&amp;width=477" alt="image.png"  /></p>
+<figure style="flex-grow: 133; flex-basis: 321px">
+		<a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4.png" data-size="477x356"><img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4.png"
+				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_480x0_resize_box_2.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_1024x0_resize_box_2.png 1024w"
+				width="477"
+				height="356"
+				loading="lazy"
+				alt="计算距离">
+		</a>
+		
+		<figcaption>计算距离</figcaption>
+		
+	</figure></p>
 <p>还有这种按距离由近及远取周边物件的。
-<img src="https://cdn.nlark.com/yuque/0/2021/png/2561634/1632818047127-1c5f6665-1fe8-4831-9c4b-2a0cbf294950.png#clientId=u04fbd14e-2e63-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=550&amp;id=Wgdrb&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=550&amp;originWidth=1171&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=280032&amp;status=done&amp;style=none&amp;taskId=u2a237354-f1ac-4382-973b-8aefaada4c7&amp;title=&amp;width=1171" alt="image.png"  /></p>
+<figure style="flex-grow: 212; flex-basis: 510px">
+		<a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5.png" data-size="1145x538"><img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5.png"
+				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_480x0_resize_box_2.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_1024x0_resize_box_2.png 1024w"
+				width="1145"
+				height="538"
+				loading="lazy"
+				alt="按距离排序获得数据">
+		</a>
+		
+		<figcaption>按距离排序获得数据</figcaption>
+		
+	</figure></p>
 
 </section>
 
@@ -383,15 +413,21 @@ GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
                 <div class="widget--toc">
                     <nav id="TableOfContents">
   <ol>
-    <li><a href="#数据存储redis">数据存储Redis</a></li>
-    <li><a href="#获取范围内的数据">获取范围内的数据</a>
+    <li><a href="#介绍">介绍</a></li>
+    <li><a href="#如何使用">如何使用</a>
       <ol>
-        <li><a href="#根据经纬度">根据经纬度</a></li>
-        <li><a href="#根据已有成员">根据已有成员</a></li>
+        <li><a href="#数据存储redis">数据存储Redis</a></li>
+        <li><a href="#获取范围内的数据">获取范围内的数据</a>
+          <ol>
+            <li><a href="#根据经纬度">根据经纬度</a></li>
+            <li><a href="#根据已有成员">根据已有成员</a></li>
+          </ol>
+        </li>
+        <li><a href="#计算距离">计算距离</a></li>
       </ol>
     </li>
-    <li><a href="#heading"></a></li>
-    <li><a href="#计算距离">计算距离</a></li>
+    <li><a href="#实现原理">实现原理</a></li>
+    <li><a href="#使用场景">使用场景</a></li>
   </ol>
 </nav>
                 </div>
