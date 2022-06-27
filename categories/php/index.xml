@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>php on 随笔记</title>
+    <link>https://weekthree.github.io/categories/php/</link>
+    <description>Recent content in php on 随笔记</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 10 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/categories/php/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Array 函数效率问题</title>
+      <link>https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/</link>
+      <pubDate>Fri, 10 Jun 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/</guid>
+      <description>起因 PHP Array 函数是 PHP 核心的组成部分，我们在编写 PHP 代码的时候，这些内置的 Array 函数给我们提供了极大的便利。但是有一次我发现在测试环境执行无异常的代码，在线上执行却超时了。 开始以为是代码里面有 SQL 慢查询导致的，但是排查相关的数据库语句并没有发现什么问题。最后定位到一段遍历语句当中，里面用到了三个数组函数，分别是数组合并函数array_merge()，数组查找函数array_search()和in_array()。 我们先看下面这段垃圾代码。
+foreach ($poolStr as $poolIds) { $poolId = explode(&amp;#39;,&amp;#39;, $poolIds); $batchPool = array_merge($batchPool, $poolId); } ... foreach ($batchPool as $bp) { $postId = array_search($bp,$turnPool); if ($postId &amp;amp;&amp;amp; in_array($postId,$onlinePost)) { //do somgthing  } } 通过分析，意识到虽然这里并没有相关的数据库查询操作，但是遍历可能涉及到大量的循环，相关内置函数的效率问题会明显放大。 下面用例子证明一下。（使用相同的range()函数创建一样长度的数组，这次不考虑range()函数的时间消耗。)
+Array 函数 array_merge() 我们循环10000次，每次生成10个元素的数组，然后使用array_merge()函数合并成一个大数组。经过测试发现，10000次循环合并就要花费4秒多。
+&amp;lt;?php /** * 获取毫秒 */ if (!function_exists(&amp;#39;getMsectime&amp;#39;)) { function getMsectime() { list($msec, $sec) = explode(&amp;#39; &amp;#39;, microtime()); return (float)sprintf(&amp;#39;%.</description>
+    </item>
+    
+  </channel>
+</rss>

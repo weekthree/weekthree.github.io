@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。要在不同的场景选择适用的内置函数。'><title>Array 函数效率问题</title>
+
+<link rel='canonical' href='https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/'>
+
+<link rel="stylesheet" href="/scss/style.min.css"><meta property='og:title' content='Array 函数效率问题'>
+<meta property='og:description' content='不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。要在不同的场景选择适用的内置函数。'>
+<meta property='og:url' content='https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/'>
+<meta property='og:site_name' content='随笔记'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='php' /><meta property='article:tag' content='array' /><meta property='article:published_time' content='2022-06-10T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-06-10T00:00:00&#43;00:00'/><meta property='og:image' content='https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/1.jpg' />
+<meta name="twitter:title" content="Array 函数效率问题">
+<meta name="twitter:description" content="不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。要在不同的场景选择适用的内置函数。"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/1.jpg' />
+    </head>
+    <body class="
+    article-page has-toc
+">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex 
+    
+        extended
+    
+">
+    
+        <div id="article-toolbar">
+            <a href="https://weekthree.github.io/" class="back-home">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="15 6 9 12 15 18" />
+</svg>
+
+
+
+                <span>返回</span>
+            </a>
+        </div>
+    
+<main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/">
+                <img src="/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/1_huef019ec58a04e78cdce296a9631ccd9b_27304_800x0_resize_q75_box.jpg"
+                        srcset="/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/1_huef019ec58a04e78cdce296a9631ccd9b_27304_800x0_resize_q75_box.jpg 800w, /p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/1_huef019ec58a04e78cdce296a9631ccd9b_27304_1600x0_resize_q75_box.jpg 1600w"
+                        width="800" 
+                        height="450" 
+                        loading="lazy"
+                        alt="Featured image of post Array 函数效率问题" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/php/" >
+                php
+            </a>
+        
+    </header>
+    
+
+    <h2 class="article-title">
+        <a href="/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/">Array 函数效率问题</a>
+    </h2>
+
+    
+    <h3 class="article-subtitle">
+        不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。要在不同的场景选择适用的内置函数。
+    </h3>
+    <footer class="article-time">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+        <time class="article-time--published">2022-06-10</time>
+    </footer></div>
+</header>
+
+    <section class="article-content">
+    <h2 id="起因">起因</h2>
+<p>PHP Array 函数是 PHP 核心的组成部分，我们在编写 PHP 代码的时候，这些内置的 Array 函数给我们提供了极大的便利。但是有一次我发现在测试环境执行无异常的代码，在线上执行却超时了。
+开始以为是代码里面有 SQL 慢查询导致的，但是排查相关的数据库语句并没有发现什么问题。最后定位到一段遍历语句当中，里面用到了三个数组函数，分别是数组合并函数<code>array_merge()</code>，数组查找函数<code>array_search()</code>和<code>in_array()</code>。
+我们先看下面这段垃圾代码。</p>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php">
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$poolStr</span> <span class="k">as</span> <span class="nv">$poolIds</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$poolId</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="nv">$poolIds</span><span class="p">);</span>
+    <span class="nv">$batchPool</span> <span class="o">=</span> <span class="nx">array_merge</span><span class="p">(</span><span class="nv">$batchPool</span><span class="p">,</span> <span class="nv">$poolId</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$batchPool</span> <span class="k">as</span> <span class="nv">$bp</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$postId</span> <span class="o">=</span> <span class="nx">array_search</span><span class="p">(</span><span class="nv">$bp</span><span class="p">,</span><span class="nv">$turnPool</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$postId</span> <span class="o">&amp;&amp;</span> <span class="nx">in_array</span><span class="p">(</span><span class="nv">$postId</span><span class="p">,</span><span class="nv">$onlinePost</span><span class="p">))</span> <span class="p">{</span>
+        <span class="c1">//do somgthing
+</span><span class="c1"></span>    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>通过分析，意识到虽然这里并没有相关的数据库查询操作，但是遍历可能涉及到大量的循环，相关内置函数的效率问题会明显放大。
+下面用例子证明一下。（使用相同的<code>range()</code>函数创建一样长度的数组，这次不考虑<code>range()</code>函数的时间消耗。)</p>
+<h2 id="array-函数">Array 函数</h2>
+<h3 id="array_merge">array_merge()</h3>
+<p>我们循环10000次，每次生成10个元素的数组，然后使用<code>array_merge()</code>函数合并成一个大数组。经过测试发现，10000次循环合并就要花费4秒多。</p>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="sd">/**
+</span><span class="sd"> * 获取毫秒
+</span><span class="sd"> */</span>
+<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">function_exists</span><span class="p">(</span><span class="s1">&#39;getMsectime&#39;</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">function</span> <span class="nf">getMsectime</span><span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">list</span><span class="p">(</span><span class="nv">$msec</span><span class="p">,</span> <span class="nv">$sec</span><span class="p">)</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="nx">microtime</span><span class="p">());</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nx">float</span><span class="p">)</span><span class="nx">sprintf</span><span class="p">(</span><span class="s1">&#39;%.0f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">floatval</span><span class="p">(</span><span class="nv">$msec</span><span class="p">)</span> <span class="o">+</span> <span class="nx">floatval</span><span class="p">(</span><span class="nv">$sec</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">10000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+    <span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span>
+    <span class="nv">$arr</span> <span class="o">=</span> <span class="nx">array_merge</span><span class="p">(</span><span class="nv">$arr</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;元素个数&#34;</span><span class="o">.</span><span class="nx">count</span><span class="p">(</span><span class="nv">$arr</span><span class="p">);</span>
+
+<span class="c1">//输出结果
+</span><span class="c1">//时间开销:4368ms     元素个数110011
+</span></code></pre></div><p>因为我们不关注键名，可以直接使用<code>array_push</code>替代，得到相同的数据，时间只需要5毫秒。<code>array_merge()</code>函数与其相比，性能相差了千倍。</p>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">10000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+    <span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span>
+    <span class="nx">array_push</span><span class="p">(</span><span class="nv">$arr</span><span class="p">,</span><span class="o">...</span><span class="nv">$newArr</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;元素个数&#34;</span><span class="o">.</span><span class="nx">count</span><span class="p">(</span><span class="nv">$arr</span><span class="p">);</span>
+
+<span class="c1">//输出结果
+</span><span class="c1">//时间开销:5ms     元素个数110011
+</span></code></pre></div><h3 id="array_search">array_search()</h3>
+<p>使用<code>range()</code>函数生成1-9999的数字元素的数组。使用<code>array_search()</code>执行50万次查找操作，花费了将近7秒的时间。</p>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
+<span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">array_search</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">){</span>
+        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
+<span class="c1">//输出结果
+</span><span class="c1">//时间开销:6696ms     存在元素个数9999个
+</span></code></pre></div><h3 id="in_array">in_array()</h3>
+<p>与<code>array_search()</code>半斤八两的<code>in_array()</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
+<span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">in_array</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">){</span>
+        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
+<span class="c1">//输出结果
+</span><span class="c1">//时间开销:5932ms     存在元素个数9999个
+</span></code></pre></div><p>我们进行如下优化，使用<code>array_flip()</code>先将整个数组进行反转。然后使用<code>array_key_exists()</code>在反转后的数组中查找需要搜索的key，大大提升搜索的效率。
+当然，这里也可以使用<code>isset()</code>，它使用了与<code>array_key_exists()</code>相同的操作，而且，由于<code>isset()</code>属于语言结构，在重复使用相同 key 的情况下会利用缓存提升效率。经过测试，<code>isset()</code>确实比<code>array_key_exists()</code>快那么一丢丢。
+下面是时间复杂度相关的资料，<code>in_array()</code> 和<code>array_search()</code>都是<code>O(n)</code>，<code>array_key_exists()</code>和<code>isset()</code>为<code>O(1)</code>。</p>
+<blockquote>
+<ol>
+<li>array_key_exists O(n) but really close to O(1) - this is because of linear polling in collisions, but because the chance of collisions is very small, the coefficient is also very small. I find you treat hash lookups as O(1) to give a more realistic big-O. For example the different between N=1000 and N=100000 is only about 50% slow down.</li>
+<li>isset( $array[$index] ) O(n) but really close to O(1) - it uses the same lookup as array_key_exists. Since it&rsquo;s language construct, will cache the lookup if the key is hardcoded, resulting in speed up in cases where the same key is used repeatedly.</li>
+<li>in_array O(n) - this is because it does a linear search though the array until it finds the value.</li>
+<li>array_search O(n) - it uses the same core function as in_array but returns value.</li>
+</ol>
+</blockquote>
+<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
+<span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">array_flip</span><span class="p">(</span><span class="nv">$newArr</span><span class="p">);</span>
+<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">array_key_exists</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)){</span>
+        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="cm">/* 使用isset也可以
+</span><span class="cm">     if(isset($newArr[$i]) !== false){
+</span><span class="cm">        $nums++;
+</span><span class="cm">    }
+</span><span class="cm">    */</span>
+<span class="p">}</span>
+<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+<span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
+<span class="c1">//输出结果
+</span><span class="c1">//array_key_exists
+</span><span class="c1">//时间开销:25ms     存在元素个数9999个
+</span><span class="c1"></span>
+<span class="c1">//isset
+</span><span class="c1">//时间开销:18ms     存在元素个数9999个
+</span></code></pre></div><p>先使用<code>array_flip()</code>先将整个数组进行反转，再使用<code>isset()</code>或者<code>array_key_exists()</code>替代数组搜索函数，可以大幅提高执行效率。</p>
+<h2 id="总结">总结</h2>
+<p>过上面三个例子，我们发现不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。那么如何在享受内置函数便利的同时，又规避性能陷阱呢？
+这就需要我们对日常高频使用的相关函数的时间复杂度和执行方式都要有个大致的了解，这样才能在不同的场景中找到最适合的函数，也能在出现问题后快速定位，寻找别的实现方式替代。</p>
+<h2 id="参考资料">参考资料</h2>
+<p><a class="link" href="https://stackoverflow.com/questions/2473989/list-of-big-o-for-php-functions"  target="_blank" rel="noopener"
+    >List of Big-O for PHP functions</a><br>
+<a class="link" href="https://www.php.net/manual/zh/function.in-array.php"  target="_blank" rel="noopener"
+    >PHP 手册- Manual</a></p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/php/">php</a>
+        
+            <a href="/tags/array/">array</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+    
+</article>
+
+    <aside class="related-contents--wrapper">
+    
+    
+</aside>
+
+     
+     
+        
+    <div class="disqus-container">
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "hugo-theme-stack" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (DISQUS) {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2022 随笔记
+    </section>
+    
+    <section class="powerby">
+        
+            让知识汇聚成大海 <br/>
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="2.5.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css"integrity="sha256-c0uckgykQ9v5k&#43;IqViZOZKc47Jn7KQil4/MP3ySA3F8="crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css"integrity="sha256-SBLU4vv6CA6lHsZ1XyTdhyjJxCjPif/TRkjnsyGAGnE="crossorigin="anonymous"
+            >
+
+            </main>
+    
+        <aside class="sidebar right-sidebar sticky">
+            <section class="widget archives">
+                <div class="widget-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+                </div>
+                <h2 class="widget-title section-title">目录</h2>
+                
+                <div class="widget--toc">
+                    <nav id="TableOfContents">
+  <ol>
+    <li><a href="#起因">起因</a></li>
+    <li><a href="#array-函数">Array 函数</a>
+      <ol>
+        <li><a href="#array_merge">array_merge()</a></li>
+        <li><a href="#array_search">array_search()</a></li>
+        <li><a href="#in_array">in_array()</a></li>
+      </ol>
+    </li>
+    <li><a href="#总结">总结</a></li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ol>
+</nav>
+                </div>
+            </section>
+        </aside>
+    
+
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.5/dist/vibrant.min.js"integrity="sha256-5NovOZc4iwiAWTYIFiIM7DxKUXKWvpVEuMEPLzcm5/g="crossorigin="anonymous"
+                defer="false"
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

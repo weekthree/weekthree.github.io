@@ -3,13 +3,28 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://weekthree.github.io/</loc>
-    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/tags/array/</loc>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/p/array-%E5%87%BD%E6%95%B0%E6%95%88%E7%8E%87%E9%97%AE%E9%A2%98/</loc>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/categories/</loc>
-    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/tags/php/</loc>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/categories/php/</loc>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/post/</loc>
-    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/tags/</loc>
+    <lastmod>2022-06-10T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/tags/redis/</loc>
     <lastmod>2021-11-09T00:00:00+00:00</lastmod>
@@ -18,9 +33,6 @@
     <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</loc>
-    <lastmod>2021-11-09T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://weekthree.github.io/tags/</loc>
     <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</loc>
@@ -35,10 +47,10 @@
     <loc>https://weekthree.github.io/categories/%E6%B5%8B%E8%AF%95/</loc>
     <lastmod>2020-09-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://weekthree.github.io/archives/</loc>
+    <loc>https://weekthree.github.io/page/</loc>
     <lastmod>2019-05-28T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://weekthree.github.io/page/</loc>
+    <loc>https://weekthree.github.io/archives/</loc>
     <lastmod>2019-05-28T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://weekthree.github.io/tags/css/</loc>
@@ -98,10 +110,10 @@
     <loc>https://weekthree.github.io/p/emoji-support/</loc>
     <lastmod>2019-03-05T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://weekthree.github.io/links/</loc>
+    <loc>https://weekthree.github.io/%E5%85%B3%E4%BA%8E/</loc>
+  </url><url>
+    <loc>https://weekthree.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/</loc>
   </url><url>
     <loc>https://weekthree.github.io/search/</loc>
-  </url><url>
-    <loc>https://weekthree.github.io/%E5%85%B3%E4%BA%8E/</loc>
   </url>
 </urlset>
