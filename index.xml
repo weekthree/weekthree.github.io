@@ -148,10 +148,12 @@
 &lt;p&gt;过上面三个例子，我们发现不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。那么如何在享受内置函数便利的同时，又规避性能陷阱呢？
 这就需要我们对日常高频使用的相关函数的时间复杂度和执行方式都要有个大致的了解，这样才能在不同的场景中找到最适合的函数，也能在出现问题后快速定位，寻找别的实现方式替代。&lt;/p&gt;
 &lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
-&lt;p&gt;&lt;a class=&#34;link&#34; href=&#34;https://stackoverflow.com/questions/2473989/list-of-big-o-for-php-functions&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
-    &gt;List of Big-O for PHP functions&lt;/a&gt;&lt;br&gt;
-&lt;a class=&#34;link&#34; href=&#34;https://www.php.net/manual/zh/function.in-array.php&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
-    &gt;PHP 手册- Manual&lt;/a&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a class=&#34;link&#34; href=&#34;https://stackoverflow.com/questions/2473989/list-of-big-o-for-php-functions&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;List of Big-O for PHP functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#34;link&#34; href=&#34;https://www.php.net/manual/zh/function.in-array.php&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;PHP 手册- Manual&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
 </description>
         </item>
         <item>
