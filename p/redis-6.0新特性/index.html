@@ -114,7 +114,7 @@
 <p>在 6.0 版本之前，Redis采用了采用了多路 I/O 复用技术，这里的多路指的是多个 socket 网络连接，复用指的是复用同一个线程。通过多路 I/O 复用技术在同一个线程中处理多个 I/O 请求，尽量减少网络 I/O 的消耗，提升使用效率。
 <figure style="flex-grow: 154; flex-basis: 370px">
 		<a href="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png" data-size="1157x750"><img src="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png"
-				srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_480x0_resize_box_2.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_1024x0_resize_box_2.png 1024w"
+				srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_480x0_resize_box_3.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_1024x0_resize_box_3.png 1024w"
 				width="1157"
 				height="750"
 				loading="lazy"
@@ -144,7 +144,7 @@
 <p>在第2、4阶段，由于加入了 IO 多线程，多个 IO 线程并行处理读取与解析请求，以及回写 Socket 的操作都会很快。因此可以加速网络处理，进而提升实例的吞吐量。
 <figure style="flex-grow: 99; flex-basis: 238px">
 		<a href="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png" data-size="573x577"><img src="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png"
-				srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_480x0_resize_box_2.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_1024x0_resize_box_2.png 1024w"
+				srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_480x0_resize_box_3.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_1024x0_resize_box_3.png 1024w"
 				width="573"
 				height="577"
 				loading="lazy"
@@ -156,12 +156,12 @@
 	</figure></p>
 <h3 id="开启多线程">开启多线程</h3>
 <p>默认情况下，多线程是关闭的。如果需要启动，要在 <code>redis.conf</code> 进行以下配置。</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1">#启用多线程</span>
-io-threads-do-reads yes
-
-<span class="c1">#设置线程个数</span>
-io-threads  <span class="m">6</span>
-</code></pre></div><p>需要注意的是，线程个数要小于实例所在的 CPU 核个数。对于 8 核 CPU 的机器，官方建议配置 6 个 IO 线程。
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#启用多线程</span>
+</span></span><span class="line"><span class="cl">io-threads-do-reads yes
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">#设置线程个数</span>
+</span></span><span class="line"><span class="cl">io-threads  <span class="m">6</span>
+</span></span></code></pre></div><p>需要注意的是，线程个数要小于实例所在的 CPU 核个数。对于 8 核 CPU 的机器，官方建议配置 6 个 IO 线程。
 <!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h2 id="权限控制">权限控制</h2>
 <p>在 Redis 6.0 版本之前，只能通过创建一个密码来进行安全控制。只要知道密码，就能执行类似 <code>KEYS、FLUSHDB、FLUSHALL</code> 等各种危险的操作。</p>
@@ -172,27 +172,27 @@ io-threads  <span class="m">6</span>
 <p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="创建不同用户">创建不同用户</h3>
 <p>Redis 6.0 版本之前所有使用者通过一个密码登陆使用，没有账号的概念。而在 Redis 6.0 可以通过使用 <code>ACL SETUSER</code> 给使用者创建不同的用户账号。</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1">#创建并启用samuel账号，密码为123</span>
-ACL SETUSER samuel on &gt;123
-</code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#创建并启用samuel账号，密码为123</span>
+</span></span><span class="line"><span class="cl">ACL SETUSER samuel on &gt;123
+</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="根据命令操作设置访问权限">根据命令操作设置访问权限</h3>
 <p>Redis 6.0 支持以用户为粒度设置命令操作的访问权限。<!-- raw HTML omitted -->例如：</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1">#给用户 samuel 开启 get 操作的权限。</span>
-ACL SETUSER samuel +get
-</code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#给用户 samuel 开启 get 操作的权限。</span>
+</span></span><span class="line"><span class="cl">ACL SETUSER samuel +get
+</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="根据类型设置访问权限">根据类型设置访问权限</h3>
 <p>也可以根据不同的数据类型来给用户授权<!-- raw HTML omitted -->例如：</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1">#限制用户只能操作 Hash 类的命令，不能调用 String 类型的命令</span>
-ACL SETUSER samuel +@hash -@string
-</code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#限制用户只能操作 Hash 类的命令，不能调用 String 类型的命令</span>
+</span></span><span class="line"><span class="cl">ACL SETUSER samuel +@hash -@string
+</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="根据key设置访问权限">根据key设置访问权限</h3>
 <p>使用波浪号 &ldquo;~&rdquo; 和 key 的前缀来表示访问控制的 key。<!-- raw HTML omitted -->例如：</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1">#设置用户 samuel 只能对以 &#34;user:&#34; 为前缀的 key 进行命令操作</span>
-ACL SETUSER samuel ~user:* +@all
-
-<span class="c1">#设置用户 samuel 可以进行所有操作</span>
-ACL SETUSER samuel ~* +@all
-</code></pre></div><p>Redis 6.0 可以创建不同用户来访问实例，而且可以基于用户和 key 的粒度，设置某个用户对某些 key 允许或禁止执行的命令操作。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#设置用户 samuel 只能对以 &#34;user:&#34; 为前缀的 key 进行命令操作</span>
+</span></span><span class="line"><span class="cl">ACL SETUSER samuel ~user:* +@all
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">#设置用户 samuel 可以进行所有操作</span>
+</span></span><span class="line"><span class="cl">ACL SETUSER samuel ~* +@all
+</span></span></code></pre></div><p>Redis 6.0 可以创建不同用户来访问实例，而且可以基于用户和 key 的粒度，设置某个用户对某些 key 允许或禁止执行的命令操作。</p>
 <p>这样一来，我们在有多用户的 Redis 应用场景下，就可以非常方便和灵活地为不同用户设置不同级别的命令操作权限，这对于提供安全的 Redis 访问非常有帮助。</p>
 <table>
 <thead>
@@ -236,8 +236,8 @@ ACL SETUSER samuel ~* +@all
 <h3 id="普通模式">普通模式</h3>
 <p>这种模式下，实例会在客户端记录客户端读取过的 key，并检测 key 是否有修改。一旦 key 的值发生变化，服务端会给客户端发送 invalidate 消息。通知客户端缓存失效，客户端下次请求就需要从服务端获取最新数据。</p>
 <p>通过以下命令开启或关闭普通模式下 Tracking 功能。</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">CLIENT TRACKING ON<span class="p">|</span>OFF
-</code></pre></div><p>需要注意的是，为了节省服务端的内存空间，对于客户端不再访问的 key ，服务端是不会记录这个 key 的修改情况的。就算是之前已经发送过 invalidate 消息的key，如果此后客户端没有再次执行读命令。之后这个 key 再被修改，服务端就不会再次给客户端发送 invalidate 消息。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">CLIENT TRACKING ON<span class="p">|</span>OFF
+</span></span></code></pre></div><p>需要注意的是，为了节省服务端的内存空间，对于客户端不再访问的 key ，服务端是不会记录这个 key 的修改情况的。就算是之前已经发送过 invalidate 消息的key，如果此后客户端没有再次执行读命令。之后这个 key 再被修改，服务端就不会再次给客户端发送 invalidate 消息。</p>
 <p>总结：Server 端全局唯一的表（Invalidation Table）记录每个Client访问的Key，当发生变更时，向client推送数据过期消息。</p>
 <ul>
 <li>优点：只对Client发送其访问过的被修改的数据</li>
@@ -247,8 +247,8 @@ ACL SETUSER samuel ~* +@all
 <h3 id="广播模式">广播模式</h3>
 <p>这种模式下，服务端会给客户端广播所有 key 的失效情况。</p>
 <p>为了防止 key 在频繁修改的情况下，服务端发送大量失效广播消息造成大量网络带宽资源被消耗。客户端需要跟踪指定前缀的 key，这样让服务端针对性的发送失效信息给客户端。</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">CLIENT TRACKING ON BCAST PREFIX user
-</code></pre></div><p>类似上面的命令操作。只有更新了 user: 前缀的key，客户端才会收到 invalidate 消息。<!-- raw HTML omitted -->和普通模式不同，就算客户端还没有读取过 key，只要注册了跟踪前缀，服务端就会把这个 key 失效消息通知给客户端。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">CLIENT TRACKING ON BCAST PREFIX user
+</span></span></code></pre></div><p>类似上面的命令操作。只有更新了 user: 前缀的key，客户端才会收到 invalidate 消息。<!-- raw HTML omitted -->和普通模式不同，就算客户端还没有读取过 key，只要注册了跟踪前缀，服务端就会把这个 key 失效消息通知给客户端。</p>
 <p>总结：客户端订阅 key 前缀的广播，服务端记录 key 前缀与 client 的对应关系。当相匹配的 key 发生变化时通知 client</p>
 <ul>
 <li>优点：服务端记录信息比较少</li>
@@ -280,18 +280,6 @@ ACL SETUSER samuel ~* +@all
     </section>
 
 
-    
-    <section class="article-copyright">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <path stroke="none" d="M0 0h24v24H0z"/>
-  <circle cx="12" cy="12" r="9" />
-  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
-</svg>
-
-
-
-        <span>Licensed under CC BY-NC-SA 4.0</span>
-    </section>
     </footer>
 
     
@@ -308,7 +296,7 @@ ACL SETUSER samuel ~* +@all
     <div class="disqus-container">
     <div id="disqus_thread"></div>
 <script type="application/javascript">
-    var disqus_config = function () {
+    window.disqus_config = function () {
     
     
     

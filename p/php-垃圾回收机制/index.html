@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='垃圾回收机制是一种动态存储分配方案。它会自动释放程序不再需要的已分配的内存块。让我们看一下 php 的垃圾回收机制。'><title>Php 垃圾回收机制</title>
+
+<link rel='canonical' href='https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/'>
+
+<link rel="stylesheet" href="/scss/style.min.css"><meta property='og:title' content='Php 垃圾回收机制'>
+<meta property='og:description' content='垃圾回收机制是一种动态存储分配方案。它会自动释放程序不再需要的已分配的内存块。让我们看一下 php 的垃圾回收机制。'>
+<meta property='og:url' content='https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/'>
+<meta property='og:site_name' content='随笔记'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='php' /><meta property='article:tag' content='gc' /><meta property='article:published_time' content='2021-08-29T10:55:45&#43;08:00'/><meta property='article:modified_time' content='2021-08-29T10:55:45&#43;08:00'/><meta property='og:image' content='https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/logo.png' />
+<meta name="twitter:title" content="Php 垃圾回收机制">
+<meta name="twitter:description" content="垃圾回收机制是一种动态存储分配方案。它会自动释放程序不再需要的已分配的内存块。让我们看一下 php 的垃圾回收机制。"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/logo.png' />
+    <link rel="shortcut icon" href="/img/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page has-toc
+">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex 
+    
+        extended
+    
+">
+    
+        <div id="article-toolbar">
+            <a href="https://weekthree.github.io/" class="back-home">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="15 6 9 12 15 18" />
+</svg>
+
+
+
+                <span>返回</span>
+            </a>
+        </div>
+    
+<main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/">
+                <img src="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/logo_hu95715a275f688f30e37c56d0c7fd7826_937083_800x0_resize_box_3.png"
+                        srcset="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/logo_hu95715a275f688f30e37c56d0c7fd7826_937083_800x0_resize_box_3.png 800w, /p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/logo_hu95715a275f688f30e37c56d0c7fd7826_937083_1600x0_resize_box_3.png 1600w"
+                        width="800" 
+                        height="501" 
+                        loading="lazy"
+                        alt="Featured image of post Php 垃圾回收机制" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/php/" >
+                php
+            </a>
+        
+    </header>
+    
+
+    <h2 class="article-title">
+        <a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/">Php 垃圾回收机制</a>
+    </h2>
+
+    
+    <h3 class="article-subtitle">
+        垃圾回收机制是一种动态存储分配方案。它会自动释放程序不再需要的已分配的内存块。让我们看一下 php 的垃圾回收机制。
+    </h3>
+    <footer class="article-time">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+        <time class="article-time--published">2021-08-29</time>
+    </footer></div>
+</header>
+
+    <section class="article-content">
+    <h2 id="概念">概念</h2>
+<p>PHP本身实现了垃圾回收机制(Garbage Collection)，让程序员不必过分关心程序内存分配，从而将更多的精力投入到业务逻辑。</p>
+<p>PHP中的变量划分为三大类：</p>
+<ol>
+<li>标量数据类型
+<ol>
+<li>包括布尔型、整型、浮点型和字符串</li>
+</ol>
+</li>
+<li>复合数据类型。
+<ol>
+<li>包括数组、对象;</li>
+</ol>
+</li>
+<li>特殊数据类型
+<ol>
+<li>包括资源、null</li>
+</ol>
+</li>
+</ol>
+<p>PHP变量的管理基于<strong>引用计数+写时复制</strong>实现的。</p>
+<h2 id="引用计数">引用计数</h2>
+<p>PHP把所有类型变量都存在一个叫 &ldquo;zval&quot;的变量容器中，变量的内存是通过引用计数进行管理的。
+zval变量容器，除了包含变量的类型和值，还包括两个字节的额外信息</p>
+<ol>
+<li>is_ref
+a. bool类型，用来表示变量是否属于引用集合。</li>
+<li>refcount
+a. 表示指向这个zval变量容器的变量个数。</li>
+</ol>
+<h3 id="php-5x">PHP 5.x</h3>
+<p>在PHP5中，zval 的内存是单独从堆中分配的，PHP 需要知道哪些 zval 是正在使用的，哪些是需要释放的。所以这就需要用到引用计数来保存zval本身被引用的次数。如果引用计数变成 0，就意味着这个变量已经没有用了，内存也就可以释放了。</p>
+<p><figure style="flex-grow: 253; flex-basis: 608px">
+		<a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/1.png" data-size="606x239"><img src="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/1.png"
+				srcset="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/1_hudc7febbac312a9e3d40baf59983a011d_20173_480x0_resize_box_3.png 480w, /p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/1_hudc7febbac312a9e3d40baf59983a011d_20173_1024x0_resize_box_3.png 1024w"
+				width="606"
+				height="239"
+				loading="lazy"
+				>
+		</a>
+		
+	</figure></p>
+<h4 id="标量类型">标量类型</h4>
+<p>当一个变量被赋常量值时，就会生成一个zval变量容器。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hello&#34;</span><span class="p">;</span> 
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span> 
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span></code></pre></div><p>这里只有一个变量使用这个变量容器，所以refcount=1。
+没有任何自定义的引用， 所以is_ref也是0。</p>
+<p>把一个变量赋值给另一变量将增加引用次数。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hello&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="s2">&#34;hi&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">b</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">b</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hi&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></span></code></pre></div><p>当执行 $b=$a时，引用次数是2，因为同一个变量容器被变量a和变量b关联，这时候PHP还没有必要去复制已生成的变量容器。当$b重新赋值时，才会进行内存复制，此时refcount分别都变成1。</p>
+<p>传引用后，is_ref会变成1。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hello&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hi&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">b</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hi&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">b</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">c</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hi&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></span></code></pre></div><p>变量a和b开始使用的是同一变量容器。$a传引用给$c后，a,c指向的是同一个变量容器，所以is_ref=1，refcount=2。
+b后面使用单独的变量容器，refcount变为1。</p>
+<p>当任何关联到某个变量容器的变量离开它的作用域，例如函数执行结束或者对变量执行了unset()，refcount就会减少1,变量容器在refcount变成0时就会被销毁。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hello&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$c</span> <span class="o">=</span> <span class="nv">$b</span> <span class="o">=</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$e</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="s2">&#34;hi&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">unset</span><span class="p">(</span><span class="nv">$a</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">unset</span><span class="p">(</span><span class="nv">$b</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">c</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hello&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">e</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;hi&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span></span></code></pre></div><p>如果我们再执行unset($c)和unset($e)，那么这两个变量容器就会从内存中删除。</p>
+<h4 id="复合类型">复合类型</h4>
+<p>array和object类型的变量会把他们的成员或属性存在自己的符号表中。</p>
+<p>如下面的例子：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="o">=&gt;</span><span class="s1">&#39;samuel&#39;</span><span class="p">,</span><span class="s1">&#39;age&#39;</span><span class="o">=&gt;</span><span class="mi">18</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$a</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl"><span class="k">array</span> <span class="p">(</span><span class="nx">size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;samuel&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="s1">&#39;age&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">18</span>
+</span></span><span class="line"><span class="cl">  <span class="s1">&#39;number&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">18</span>
+</span></span></code></pre></div><p>上面会生成四个zval变量容器,分别是a,name,age,number。
+我们使用赋值给数组添加元素后，age和number指向同一个zval变量容器，refcount为2。</p>
+<p>和标量类型一样，unset会使refcount减1，当refcount减为0时，变量容器会从内存中被删除。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="o">=&gt;</span><span class="s1">&#39;samuel&#39;</span><span class="p">,</span><span class="s1">&#39;age&#39;</span><span class="o">=&gt;</span><span class="mi">18</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">unset</span><span class="p">(</span><span class="nv">$a</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl"><span class="k">array</span> <span class="p">(</span><span class="nx">size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="s1">&#39;name&#39;</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">string</span> <span class="s1">&#39;samuel&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+</span></span></code></pre></div><h4 id="循环引用的问题">循环引用的问题</h4>
+<p>PHP变量的回收是根据refcount实现的，当unset、return时会将变量的引用计数减掉，如果refcount减到0则直接释放value，这是变量的简单gc过程。
+在PHP 5.3之前的版本中，数组循环引用会出现内存无法回收的问题。
+如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span> <span class="s1">&#39;one&#39;</span> <span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span><span class="p">[]</span> <span class="o">=&amp;</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span> <span class="s1">&#39;a&#39;</span> <span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">=</span><span class="k">array</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">   <span class="mi">0</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">=</span><span class="s1">&#39;one&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">   <span class="mi">1</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">=...</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><p>当使用unset($a)后，会发生下面的问题。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">=</span><span class="k">array</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">   <span class="mi">0</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">=</span><span class="s1">&#39;one&#39;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">   <span class="mi">1</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">=...</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><p>unset($a)之前的引用关系:
+<figure style="flex-grow: 363; flex-basis: 871px">
+		<a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/2.png" data-size="614x169"><img src="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/2.png"
+				srcset="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/2_hu564842109deeffedfd785ee767471603_11195_480x0_resize_box_3.png 480w, /p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/2_hu564842109deeffedfd785ee767471603_11195_1024x0_resize_box_3.png 1024w"
+				width="614"
+				height="169"
+				loading="lazy"
+				>
+		</a>
+		
+	</figure>
+unset($a)之后：<br>
+<figure style="flex-grow: 324; flex-basis: 778px">
+		<a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/3.png" data-size="642x198"><img src="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/3.png"
+				srcset="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/3_hu6f17ae52d8a6cd46a13c5e0e1b2fdaf8_12429_480x0_resize_box_3.png 480w, /p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/3_hu6f17ae52d8a6cd46a13c5e0e1b2fdaf8_12429_1024x0_resize_box_3.png 1024w"
+				width="642"
+				height="198"
+				loading="lazy"
+				>
+		</a>
+		
+	</figure></p>
+<p>尽管不再有某个作用域中的任何符号指向这个结构(就是变量容器)，由于数组子元素仍然指向数组本身，所以这个容器不能被清除 。因为没有另外的符号指向它，用户没有办法清除这个结构，结果就会导致<strong>内存泄漏</strong>。
+这种无法通过简单的gc机制回收的情况下就会产生垃圾，垃圾回收器要处理的就是这种情况，目前垃圾只会出现在array、object两种类型中。
+为了解决这问题，PHP 使用了<a class="link" href="http://php.net/manual/zh/features.gc.collecting-cycles.php"  target="_blank" rel="noopener"
+    >循环回收</a>的方法。当一个 zval 的计数减一时，就有可能属于循环的一部分，这时将 zval 写入到根缓冲区(root buffer)中。当缓冲区满时，潜在的循环会被打上标记并进行回收。</p>
+<h5 id="循环回收">循环回收</h5>
+<p>是否加入循环回收判断如下：</p>
+<ol>
+<li>如果一个zval的refcount增加，说明此zval继续在被使用，不是垃圾。</li>
+<li>如果引用计数减少到零，所在变量容器将被正常清除。</li>
+<li>如果引用计数减少到非零值时，那么此zval有可能成为垃圾，放入缓冲区，这时才会产生垃圾周期。</li>
+</ol>
+<p>当一个zval可能为垃圾时，回收算法会把这个zval放入一个根缓冲区。当缓冲区达到最大临界值时（默认10000），回收算法会循环遍历所有缓冲区中的zval，判断其是否为垃圾，并进行释放处理。</p>
+<h5 id="执行步骤">执行步骤</h5>
+<p>如下：</p>
+<ol>
+<li>根据深度优先遍历所有根zval,将每个成员模拟删除,使成员的refcount减1。每个变量只能被模拟删除一次，模拟删除后进行标记。</li>
+<li>再次遍历，将引用计数大于0的zval模拟恢复，refcount加1。每个变量也只能恢复一次，恢复后进行标记。为0的保持不变。</li>
+<li>销毁所有refcount为0的zval，并收回其内存。</li>
+</ol>
+<p>（下面这个图是PHP文档上抄的，看了半天没明天灰色的refcount =C 是啥回事，后面发现应该是O才对，估计没印好，不知道PHP文档上哪里抄来的图）
+<figure style="flex-grow: 75; flex-basis: 181px">
+		<a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/4.png" data-size="614x814"><img src="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/4.png"
+				srcset="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/4_hudc0d333bd67626b82924390b7f503469_32342_480x0_resize_box_3.png 480w, /p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/4_hudc0d333bd67626b82924390b7f503469_32342_1024x0_resize_box_3.png 1024w"
+				width="614"
+				height="814"
+				loading="lazy"
+				>
+		</a>
+		
+	</figure></p>
+<h5 id="核心原理">核心原理</h5>
+<p>这个算法的原理很简单，垃圾是由于成员引用自身导致的，那么就对所有的成员减一遍引用，如果发现最后变量本身的 refcount 变为了 0 则就表明其引用全部来自自身成员，即其他任何地方都不再使用它，那么它就是垃圾，需要被回收掉。
+如果你这个变量不是垃圾，那么它的所有成员变量的引用减一之后，refcount 必然不为0，需要将其从缓冲区移出去。
+当垃圾回收机制打开时，每当根缓存区存满时，就会执行上面描述的循环查找算法。通过此方法解决循环引用的问题，可以将内存泄漏保持在一个阀值以下。</p>
+<h3 id="php-7x">PHP 7.x</h3>
+<p>在PHP7中，zval使用了新的实现方式，更改了内存分配和引用计数的存储方式。
+不同的数据类型与PHP 5.x相比，引用计数的计算上也出现了一些差别。
+简单数据类型（比如整形和浮点类型）也不需要计数；
+这样可以节省大量的内存分配和内存管理等操做，从而性能获得很大的提高。
+<figure style="flex-grow: 278; flex-basis: 669px">
+		<a href="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/5.png" data-size="633x227"><img src="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/5.png"
+				srcset="/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/5_hue135bf30b06e1c22d6724f98f9d880d6_16401_480x0_resize_box_3.png 480w, /p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/5_hue135bf30b06e1c22d6724f98f9d880d6_16401_1024x0_resize_box_3.png 1024w"
+				width="633"
+				height="227"
+				loading="lazy"
+				>
+		</a>
+		
+	</figure></p>
+<p>（以下案例是在PHP7.1.23下的结果，PHP7的各个版本不同会有会有一定的差异）</p>
+<h4 id="整形和浮点类型">整形和浮点类型</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$var_int</span> <span class="o">=</span> <span class="mi">123</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var_float</span> <span class="o">=</span> <span class="mf">1.23</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var_int2</span> <span class="o">=</span> <span class="nv">$var_int</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var_float2</span> <span class="o">=</span> <span class="nv">$var_float</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_int&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_float&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_int2&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_float2&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">var_int</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">int</span> <span class="mi">123</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_float</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">float</span> <span class="mf">1.23</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_int2</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">int</span> <span class="mi">123</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_float2</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">float</span> <span class="mf">1.23</span>
+</span></span></code></pre></div><p>在为int和float的类型的变量名申请zval_struct时，可以直接将变量的值存储到zval_struct.value中，对于这种简单的类型，就不会在对它们进行引用计数，而是拷贝的时候就直接赋值。这样就省掉了大量的引用计数相关的操作。</p>
+<p>当然对于那种根本没有值, 只有类型的类型, 也不需要引用计数了:</p>
+<ol>
+<li>IS_NULL</li>
+<li>IS_FALSE</li>
+<li>IS_TRUE</li>
+</ol>
+<h4 id="普通字符串类型">普通字符串类型</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$var_string</span> <span class="o">=</span> <span class="s2">&#34;abc&#34;</span><span class="o">.</span><span class="nx">time</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_string&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var_string2</span> <span class="o">=</span> <span class="nv">$var_string</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_string&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">var_string</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">string</span> <span class="s1">&#39;abc1629256042&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_string</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">string</span> <span class="s1">&#39;abc1629256042&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+</span></span></code></pre></div><p>普通字符串和PHP5的版本的计数是一样的。</p>
+<h4 id="静态字符串类型">静态字符串类型</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$var_string</span> <span class="o">=</span> <span class="s2">&#34;abc&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_string&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var_string2</span> <span class="o">=</span> <span class="nv">$var_string</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_string&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">var_string</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">string</span> <span class="s1">&#39;abc&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_string</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">string</span> <span class="s1">&#39;abc&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span></code></pre></div><h4 id="数组">数组</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$var_arr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.1</span><span class="p">,</span><span class="s1">&#39;abc&#39;</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_arr&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$var_arr2</span> <span class="o">=</span> <span class="nv">$var_arr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_arr&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">exit</span><span class="p">;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">var_arr</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">array</span> <span class="p">(</span><span class="nx">size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">0</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">int</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">1</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">float</span> <span class="mf">2.1</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">2</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">string</span> <span class="s1">&#39;abc&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">var_arr</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">array</span> <span class="p">(</span><span class="nx">size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">0</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">int</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">1</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">float</span> <span class="mf">2.1</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">2</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">string</span> <span class="s1">&#39;abc&#39;</span> <span class="p">(</span><span class="nx">length</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span></code></pre></div><p> immutable array （不可变数组），在不可变数组和静态字符串下，初始使用一个伪计数值2。
+我们可以尝试将数组元素改成可变的</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$var_arr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.1</span><span class="p">,</span><span class="nx">time</span><span class="p">()];</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;var_arr&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">exit</span><span class="p">;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">var_arr</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">array</span> <span class="p">(</span><span class="nx">size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">0</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">int</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">1</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">float</span> <span class="mf">2.1</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">2</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="nx">int</span> <span class="mi">1629254030</span>
+</span></span></code></pre></div><p>可变数组和PHP5的数字计数也是一样的。</p>
+<h2 id="写时复制">写时复制</h2>
+<p>对于多个引用来说，zaval 只有在没有变化的情况下才是共享的，一旦其中一个引用改变 zval 的值，就需要复制一份 zval，然后修改复制后的 zval。
+写时复制的机制在计算机系统中有非常广的应用，它只有在必要的时候(写)才会发生硬拷贝，可以很好的提高效率。
+通过一个简单的例子来说明:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="nv">$c</span> <span class="o">=</span> <span class="nv">$a</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nx">xdebug_debug_zval</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">10</span>
+</span></span><span class="line"><span class="cl"><span class="nx">b</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">10</span>
+</span></span><span class="line"><span class="cl"><span class="nx">c</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">10</span>
+</span></span><span class="line"><span class="cl"><span class="nx">a</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">20</span>
+</span></span><span class="line"><span class="cl"><span class="nx">b</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">10</span>
+</span></span><span class="line"><span class="cl"><span class="nx">c</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl"><span class="p">(</span><span class="nx">refcount</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nx">is_ref</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span><span class="nx">int</span> <span class="mi">10</span>
+</span></span></code></pre></div><p>第一步变量a传值给变量b,c值都为10，a,b,c共享同一个zval变量容器，引用次数是3。
+第二步当变量a重新赋值后，a复制了一分zval，refcount为1。剩下的b和c共享一个，引用次数refcount为2。</p>
+<p>可以看到，再值不变的情况，PHP是没有必要进行复制zval变量容器的。只有值变化时，共享的变量容器才会进行复制。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a class="link" href="https://www.php.net/manual/zh/features.gc.refcounting-basics.php"  target="_blank" rel="noopener"
+    >引用计数基本知识</a></li>
+<li><a class="link" href="https://www.php.net/manual/zh/features.gc.collecting-cycles.php"  target="_blank" rel="noopener"
+    >回收周期</a></li>
+<li><a class="link" href="https://github.com/pangudashu/php7-internal/blob/master/2/zval.md"  target="_blank" rel="noopener"
+    >变量的内部实现</a></li>
+</ul>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/php/">php</a>
+        
+            <a href="/tags/gc/">gc</a>
+        
+    </section>
+
+
+    </footer>
+
+    
+</article>
+
+    <aside class="related-contents--wrapper">
+    
+    
+</aside>
+
+     
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2020 - 
+        
+        2022 随笔记
+    </section>
+    
+    <section class="powerby">
+        
+            让知识汇聚成大海 <br/>
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="2.5.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer="true"
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css"integrity="sha256-c0uckgykQ9v5k&#43;IqViZOZKc47Jn7KQil4/MP3ySA3F8="crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css"integrity="sha256-SBLU4vv6CA6lHsZ1XyTdhyjJxCjPif/TRkjnsyGAGnE="crossorigin="anonymous"
+            >
+
+            </main>
+    
+        <aside class="sidebar right-sidebar sticky">
+            <section class="widget archives">
+                <div class="widget-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+                </div>
+                <h2 class="widget-title section-title">目录</h2>
+                
+                <div class="widget--toc">
+                    <nav id="TableOfContents">
+  <ol>
+    <li><a href="#概念">概念</a></li>
+    <li><a href="#引用计数">引用计数</a>
+      <ol>
+        <li><a href="#php-5x">PHP 5.x</a>
+          <ol>
+            <li><a href="#标量类型">标量类型</a></li>
+            <li><a href="#复合类型">复合类型</a></li>
+            <li><a href="#循环引用的问题">循环引用的问题</a></li>
+          </ol>
+        </li>
+        <li><a href="#php-7x">PHP 7.x</a>
+          <ol>
+            <li><a href="#整形和浮点类型">整形和浮点类型</a></li>
+            <li><a href="#普通字符串类型">普通字符串类型</a></li>
+            <li><a href="#静态字符串类型">静态字符串类型</a></li>
+            <li><a href="#数组">数组</a></li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li><a href="#写时复制">写时复制</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ol>
+</nav>
+                </div>
+            </section>
+        </aside>
+    
+
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.5/dist/vibrant.min.js"integrity="sha256-5NovOZc4iwiAWTYIFiIM7DxKUXKWvpVEuMEPLzcm5/g="crossorigin="anonymous"
+                defer="false"
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

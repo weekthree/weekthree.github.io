@@ -36,6 +36,12 @@
     <loc>https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/</loc>
     <lastmod>2021-11-09T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://weekthree.github.io/tags/gc/</loc>
+    <lastmod>2021-08-29T10:55:45+08:00</lastmod>
+  </url><url>
+    <loc>https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/</loc>
+    <lastmod>2021-08-29T10:55:45+08:00</lastmod>
+  </url><url>
     <loc>https://weekthree.github.io/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/</loc>
     <lastmod>2021-03-09T00:00:00+00:00</lastmod>
   </url><url>
@@ -114,8 +120,8 @@
     <loc>https://weekthree.github.io/p/emoji-support/</loc>
     <lastmod>2019-03-05T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://weekthree.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/</loc>
-  </url><url>
     <loc>https://weekthree.github.io/search/</loc>
+  </url><url>
+    <loc>https://weekthree.github.io/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/</loc>
   </url>
 </urlset>

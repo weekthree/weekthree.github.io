@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>gc on 随笔记</title>
+    <link>https://weekthree.github.io/tags/gc/</link>
+    <description>Recent content in gc on 随笔记</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 29 Aug 2021 10:55:45 +0800</lastBuildDate><atom:link href="https://weekthree.github.io/tags/gc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Php 垃圾回收机制</title>
+      <link>https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/</link>
+      <pubDate>Sun, 29 Aug 2021 10:55:45 +0800</pubDate>
+      
+      <guid>https://weekthree.github.io/p/php-%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6/</guid>
+      <description>概念 PHP本身实现了垃圾回收机制(Garbage Collection)，让程序员不必过分关心程序内存分配，从而将更多的精力投入到业务逻辑。
+PHP中的变量划分为三大类：
+标量数据类型 包括布尔型、整型、浮点型和字符串 复合数据类型。 包括数组、对象; 特殊数据类型 包括资源、null PHP变量的管理基于引用计数+写时复制实现的。
+引用计数 PHP把所有类型变量都存在一个叫 &amp;ldquo;zval&amp;quot;的变量容器中，变量的内存是通过引用计数进行管理的。 zval变量容器，除了包含变量的类型和值，还包括两个字节的额外信息
+is_ref a. bool类型，用来表示变量是否属于引用集合。 refcount a. 表示指向这个zval变量容器的变量个数。 PHP 5.x 在PHP5中，zval 的内存是单独从堆中分配的，PHP 需要知道哪些 zval 是正在使用的，哪些是需要释放的。所以这就需要用到引用计数来保存zval本身被引用的次数。如果引用计数变成 0，就意味着这个变量已经没有用了，内存也就可以释放了。
+标量类型 当一个变量被赋常量值时，就会生成一个zval变量容器。
+$a = &amp;#34;hello&amp;#34;; xdebug_debug_zval(&amp;#39;a&amp;#39;); a: (refcount=1, is_ref=0),string &amp;#39;hello&amp;#39; (length=5) 这里只有一个变量使用这个变量容器，所以refcount=1。 没有任何自定义的引用， 所以is_ref也是0。
+把一个变量赋值给另一变量将增加引用次数。
+$a = &amp;#34;hello&amp;#34;; $b = $a; xdebug_debug_zval(&amp;#39;a&amp;#39;); xdebug_debug_zval(&amp;#39;b&amp;#39;); $b = &amp;#34;hi&amp;#34;; xdebug_debug_zval(&amp;#39;a&amp;#39;); xdebug_debug_zval(&amp;#39;b&amp;#39;); a: (refcount=2, is_ref=0),string &amp;#39;hello&amp;#39; (length=5) b: (refcount=2, is_ref=0),string &amp;#39;hello&amp;#39; (length=5) a: (refcount=1, is_ref=0),string &amp;#39;hello&amp;#39; (length=5) b: (refcount=1, is_ref=0),string &amp;#39;hi&amp;#39; (length=2) 当执行 $b=$a时，引用次数是2，因为同一个变量容器被变量a和变量b关联，这时候PHP还没有必要去复制已生成的变量容器。当$b重新赋值时，才会进行内存复制，此时refcount分别都变成1。</description>
+    </item>
+    
+  </channel>
+</rss>

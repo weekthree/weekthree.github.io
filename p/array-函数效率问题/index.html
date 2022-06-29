@@ -113,98 +113,98 @@
 <p>PHP Array 函数是 PHP 核心的组成部分，我们在编写 PHP 代码的时候，这些内置的 Array 函数给我们提供了极大的便利。但是有一次我发现在测试环境执行无异常的代码，在线上执行却超时了。
 开始以为是代码里面有 SQL 慢查询导致的，但是排查相关的数据库语句并没有发现什么问题。最后定位到一段遍历语句当中，里面用到了三个数组函数，分别是数组合并函数<code>array_merge()</code>，数组查找函数<code>array_search()</code>和<code>in_array()</code>。
 我们先看下面这段垃圾代码。</p>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php">
-<span class="k">foreach</span> <span class="p">(</span><span class="nv">$poolStr</span> <span class="k">as</span> <span class="nv">$poolIds</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nv">$poolId</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="nv">$poolIds</span><span class="p">);</span>
-    <span class="nv">$batchPool</span> <span class="o">=</span> <span class="nx">array_merge</span><span class="p">(</span><span class="nv">$batchPool</span><span class="p">,</span> <span class="nv">$poolId</span><span class="p">);</span>
-<span class="p">}</span>
-<span class="o">...</span>
-<span class="k">foreach</span> <span class="p">(</span><span class="nv">$batchPool</span> <span class="k">as</span> <span class="nv">$bp</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nv">$postId</span> <span class="o">=</span> <span class="nx">array_search</span><span class="p">(</span><span class="nv">$bp</span><span class="p">,</span><span class="nv">$turnPool</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nv">$postId</span> <span class="o">&amp;&amp;</span> <span class="nx">in_array</span><span class="p">(</span><span class="nv">$postId</span><span class="p">,</span><span class="nv">$onlinePost</span><span class="p">))</span> <span class="p">{</span>
-        <span class="c1">//do somgthing
-</span><span class="c1"></span>    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div><p>通过分析，意识到虽然这里并没有相关的数据库查询操作，但是遍历可能涉及到大量的循环，相关内置函数的效率问题会明显放大。
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">foreach</span> <span class="p">(</span><span class="nv">$poolStr</span> <span class="k">as</span> <span class="nv">$poolIds</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$poolId</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="nv">$poolIds</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$batchPool</span> <span class="o">=</span> <span class="nx">array_merge</span><span class="p">(</span><span class="nv">$batchPool</span><span class="p">,</span> <span class="nv">$poolId</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="k">foreach</span> <span class="p">(</span><span class="nv">$batchPool</span> <span class="k">as</span> <span class="nv">$bp</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$postId</span> <span class="o">=</span> <span class="nx">array_search</span><span class="p">(</span><span class="nv">$bp</span><span class="p">,</span><span class="nv">$turnPool</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="nv">$postId</span> <span class="o">&amp;&amp;</span> <span class="nx">in_array</span><span class="p">(</span><span class="nv">$postId</span><span class="p">,</span><span class="nv">$onlinePost</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">//do somgthing
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>通过分析，意识到虽然这里并没有相关的数据库查询操作，但是遍历可能涉及到大量的循环，相关内置函数的效率问题会明显放大。
 下面用例子证明一下。（使用相同的<code>range()</code>函数创建一样长度的数组，这次不考虑<code>range()</code>函数的时间消耗。)</p>
 <h2 id="array-函数">Array 函数</h2>
 <h3 id="array_merge">array_merge()</h3>
 <p>我们循环10000次，每次生成10个元素的数组，然后使用<code>array_merge()</code>函数合并成一个大数组。经过测试发现，10000次循环合并就要花费4秒多。</p>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="o">&lt;?</span><span class="nx">php</span>
-<span class="sd">/**
-</span><span class="sd"> * 获取毫秒
-</span><span class="sd"> */</span>
-<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">function_exists</span><span class="p">(</span><span class="s1">&#39;getMsectime&#39;</span><span class="p">))</span> <span class="p">{</span>
-    <span class="k">function</span> <span class="nf">getMsectime</span><span class="p">()</span>
-    <span class="p">{</span>
-        <span class="k">list</span><span class="p">(</span><span class="nv">$msec</span><span class="p">,</span> <span class="nv">$sec</span><span class="p">)</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="nx">microtime</span><span class="p">());</span>
-        <span class="k">return</span> <span class="p">(</span><span class="nx">float</span><span class="p">)</span><span class="nx">sprintf</span><span class="p">(</span><span class="s1">&#39;%.0f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">floatval</span><span class="p">(</span><span class="nv">$msec</span><span class="p">)</span> <span class="o">+</span> <span class="nx">floatval</span><span class="p">(</span><span class="nv">$sec</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-
-
-<span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
-<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">10000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
-    <span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span>
-    <span class="nv">$arr</span> <span class="o">=</span> <span class="nx">array_merge</span><span class="p">(</span><span class="nv">$arr</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">);</span>
-<span class="p">}</span>
-<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;元素个数&#34;</span><span class="o">.</span><span class="nx">count</span><span class="p">(</span><span class="nv">$arr</span><span class="p">);</span>
-
-<span class="c1">//输出结果
-</span><span class="c1">//时间开销:4368ms     元素个数110011
-</span></code></pre></div><p>因为我们不关注键名，可以直接使用<code>array_push</code>替代，得到相同的数据，时间只需要5毫秒。<code>array_merge()</code>函数与其相比，性能相差了千倍。</p>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
-<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">10000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
-    <span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span>
-    <span class="nx">array_push</span><span class="p">(</span><span class="nv">$arr</span><span class="p">,</span><span class="o">...</span><span class="nv">$newArr</span><span class="p">);</span>
-<span class="p">}</span>
-<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;元素个数&#34;</span><span class="o">.</span><span class="nx">count</span><span class="p">(</span><span class="nv">$arr</span><span class="p">);</span>
-
-<span class="c1">//输出结果
-</span><span class="c1">//时间开销:5ms     元素个数110011
-</span></code></pre></div><h3 id="array_search">array_search()</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="o">&lt;?</span><span class="nx">php</span>
+</span></span><span class="line"><span class="cl"><span class="sd">/**
+</span></span></span><span class="line"><span class="cl"><span class="sd"> * 获取毫秒
+</span></span></span><span class="line"><span class="cl"><span class="sd"> */</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">function_exists</span><span class="p">(</span><span class="s1">&#39;getMsectime&#39;</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">function</span> <span class="nf">getMsectime</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">list</span><span class="p">(</span><span class="nv">$msec</span><span class="p">,</span> <span class="nv">$sec</span><span class="p">)</span> <span class="o">=</span> <span class="nx">explode</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="nx">microtime</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="p">(</span><span class="nx">float</span><span class="p">)</span><span class="nx">sprintf</span><span class="p">(</span><span class="s1">&#39;%.0f&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">floatval</span><span class="p">(</span><span class="nv">$msec</span><span class="p">)</span> <span class="o">+</span> <span class="nx">floatval</span><span class="p">(</span><span class="nv">$sec</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">10000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$arr</span> <span class="o">=</span> <span class="nx">array_merge</span><span class="p">(</span><span class="nv">$arr</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;元素个数&#34;</span><span class="o">.</span><span class="nx">count</span><span class="p">(</span><span class="nv">$arr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//输出结果
+</span></span></span><span class="line"><span class="cl"><span class="c1">//时间开销:4368ms     元素个数110011
+</span></span></span></code></pre></div><p>因为我们不关注键名，可以直接使用<code>array_push</code>替代，得到相同的数据，时间只需要5毫秒。<code>array_merge()</code>函数与其相比，性能相差了千倍。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">10000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">array_push</span><span class="p">(</span><span class="nv">$arr</span><span class="p">,</span><span class="o">...</span><span class="nv">$newArr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;元素个数&#34;</span><span class="o">.</span><span class="nx">count</span><span class="p">(</span><span class="nv">$arr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//输出结果
+</span></span></span><span class="line"><span class="cl"><span class="c1">//时间开销:5ms     元素个数110011
+</span></span></span></code></pre></div><h3 id="array_search">array_search()</h3>
 <p>使用<code>range()</code>函数生成1-9999的数字元素的数组。使用<code>array_search()</code>执行50万次查找操作，花费了将近7秒的时间。</p>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
-<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
-<span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
-    <span class="k">if</span><span class="p">(</span><span class="nx">array_search</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">){</span>
-        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
-<span class="c1">//输出结果
-</span><span class="c1">//时间开销:6696ms     存在元素个数9999个
-</span></code></pre></div><h3 id="in_array">in_array()</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span><span class="p">(</span><span class="nx">array_search</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//输出结果
+</span></span></span><span class="line"><span class="cl"><span class="c1">//时间开销:6696ms     存在元素个数9999个
+</span></span></span></code></pre></div><h3 id="in_array">in_array()</h3>
 <p>与<code>array_search()</code>半斤八两的<code>in_array()</code></p>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
-<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
-<span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
-    <span class="k">if</span><span class="p">(</span><span class="nx">in_array</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">){</span>
-        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
-<span class="c1">//输出结果
-</span><span class="c1">//时间开销:5932ms     存在元素个数9999个
-</span></code></pre></div><p>我们进行如下优化，使用<code>array_flip()</code>先将整个数组进行反转。然后使用<code>array_key_exists()</code>在反转后的数组中查找需要搜索的key，大大提升搜索的效率。
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span><span class="p">(</span><span class="nx">in_array</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)</span> <span class="o">!==</span> <span class="k">false</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//输出结果
+</span></span></span><span class="line"><span class="cl"><span class="c1">//时间开销:5932ms     存在元素个数9999个
+</span></span></span></code></pre></div><p>我们进行如下优化，使用<code>array_flip()</code>先将整个数组进行反转。然后使用<code>array_key_exists()</code>在反转后的数组中查找需要搜索的key，大大提升搜索的效率。
 当然，这里也可以使用<code>isset()</code>，它使用了与<code>array_key_exists()</code>相同的操作，而且，由于<code>isset()</code>属于语言结构，在重复使用相同 key 的情况下会利用缓存提升效率。经过测试，<code>isset()</code>确实比<code>array_key_exists()</code>快那么一丢丢。
 下面是时间复杂度相关的资料，<code>in_array()</code> 和<code>array_search()</code>都是<code>O(n)</code>，<code>array_key_exists()</code>和<code>isset()</code>为<code>O(1)</code>。</p>
 <blockquote>
@@ -215,32 +215,32 @@
 <li>array_search O(n) - it uses the same core function as in_array but returns value.</li>
 </ol>
 </blockquote>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
-<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
-<span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">array_flip</span><span class="p">(</span><span class="nv">$newArr</span><span class="p">);</span>
-<span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
-    <span class="k">if</span><span class="p">(</span><span class="nx">array_key_exists</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)){</span>
-        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="cm">/* 使用isset也可以
-</span><span class="cm">     if(isset($newArr[$i]) !== false){
-</span><span class="cm">        $nums++;
-</span><span class="cm">    }
-</span><span class="cm">    */</span>
-<span class="p">}</span>
-<span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
-<span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
-<span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
-<span class="c1">//输出结果
-</span><span class="c1">//array_key_exists
-</span><span class="c1">//时间开销:25ms     存在元素个数9999个
-</span><span class="c1"></span>
-<span class="c1">//isset
-</span><span class="c1">//时间开销:18ms     存在元素个数9999个
-</span></code></pre></div><p>先使用<code>array_flip()</code>先将整个数组进行反转，再使用<code>isset()</code>或者<code>array_key_exists()</code>替代数组搜索函数，可以大幅提高执行效率。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$time_s</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$arr</span> <span class="o">=</span> <span class="p">[];</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9999</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$nums</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$newArr</span> <span class="o">=</span> <span class="nx">array_flip</span><span class="p">(</span><span class="nv">$newArr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="nv">$i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="nv">$i</span><span class="o">&lt;=</span><span class="mi">500000</span><span class="p">;</span> <span class="nv">$i</span><span class="o">++</span><span class="p">){</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span><span class="p">(</span><span class="nx">array_key_exists</span><span class="p">(</span><span class="nv">$i</span><span class="p">,</span><span class="nv">$newArr</span><span class="p">)){</span>
+</span></span><span class="line"><span class="cl">        <span class="nv">$nums</span><span class="o">++</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="cm">/* 使用isset也可以
+</span></span></span><span class="line"><span class="cl"><span class="cm">     if(isset($newArr[$i]) !== false){
+</span></span></span><span class="line"><span class="cl"><span class="cm">        $nums++;
+</span></span></span><span class="line"><span class="cl"><span class="cm">    }
+</span></span></span><span class="line"><span class="cl"><span class="cm">    */</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_e</span> <span class="o">=</span> <span class="nx">getMsectime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$time_u</span> <span class="o">=</span> <span class="nv">$time_e</span> <span class="o">-</span> <span class="nv">$time_s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;时间开销:</span><span class="si">{</span><span class="nv">$time_u</span><span class="si">}</span><span class="s2">ms     &#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="s2">&#34;存在元素个数</span><span class="si">{</span><span class="nv">$nums</span><span class="si">}</span><span class="s2">个&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">//输出结果
+</span></span></span><span class="line"><span class="cl"><span class="c1">//array_key_exists
+</span></span></span><span class="line"><span class="cl"><span class="c1">//时间开销:25ms     存在元素个数9999个
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">//isset
+</span></span></span><span class="line"><span class="cl"><span class="c1">//时间开销:18ms     存在元素个数9999个
+</span></span></span></code></pre></div><p>先使用<code>array_flip()</code>先将整个数组进行反转，再使用<code>isset()</code>或者<code>array_key_exists()</code>替代数组搜索函数，可以大幅提高执行效率。</p>
 <h2 id="总结">总结</h2>
 <p>过上面三个例子，我们发现不仅仅是慢速 SQL 会导致我们的程序变慢，不恰当的内置函数的使用也是需要重视的一个点。那么如何在享受内置函数便利的同时，又规避性能陷阱呢？
 这就需要我们对日常高频使用的相关函数的时间复杂度和执行方式都要有个大致的了解，这样才能在不同的场景中找到最适合的函数，也能在出现问题后快速定位，寻找别的实现方式替代。</p>
@@ -266,18 +266,6 @@
     </section>
 
 
-    
-    <section class="article-copyright">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <path stroke="none" d="M0 0h24v24H0z"/>
-  <circle cx="12" cy="12" r="9" />
-  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
-</svg>
-
-
-
-        <span>Licensed under CC BY-NC-SA 4.0</span>
-    </section>
     </footer>
 
     
@@ -294,7 +282,7 @@
     <div class="disqus-container">
     <div id="disqus_thread"></div>
 <script type="application/javascript">
-    var disqus_config = function () {
+    window.disqus_config = function () {
     
     
     

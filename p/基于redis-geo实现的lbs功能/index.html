@@ -115,18 +115,18 @@
 <h2 id="如何使用">如何使用</h2>
 <h3 id="数据存储redis">数据存储Redis</h3>
 <p>使用前，需要将经纬度数据准备好，使用以下命令存储到Redis中。</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">GEOADD key longitude latitude member <span class="o">[</span>longitude latitude member ...<span class="o">]</span>
-</code></pre></div><p>例如，物件ID是1001的经纬度信息为114.143701,22.408597</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">GEOADD data:locations 114.143701 22.408597 <span class="m">1001</span> 
-</code></pre></div><p>将所有数据插入到Redis后，我们就可以开始获取想要的数据了。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">GEOADD key longitude latitude member <span class="o">[</span>longitude latitude member ...<span class="o">]</span>
+</span></span></code></pre></div><p>例如，物件ID是1001的经纬度信息为114.143701,22.408597</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">GEOADD data:locations 114.143701 22.408597 <span class="m">1001</span> 
+</span></span></code></pre></div><p>将所有数据插入到Redis后，我们就可以开始获取想要的数据了。</p>
 <h3 id="获取范围内的数据">获取范围内的数据</h3>
 <h4 id="根据经纬度">根据经纬度</h4>
 <p>例如，我们想根据经纬度获得离它5km范围最近的三笔数据，按距离由近到远排序。</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEORADIUS data:locations 114.152801 22.411597 <span class="m">5</span> km ASC COUNT <span class="m">3</span>
-<span class="m">1003</span>
-<span class="m">1001</span>
-<span class="m">1002</span>
-</code></pre></div><p>返回的数据就是按直线距离排序好的成员ID。其中参数<code>5 km</code>就是限制距离范围。支持多种单位长度</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">&gt; GEORADIUS data:locations 114.152801 22.411597 <span class="m">5</span> km ASC COUNT <span class="m">3</span>
+</span></span><span class="line"><span class="cl"><span class="m">1003</span>
+</span></span><span class="line"><span class="cl"><span class="m">1001</span>
+</span></span><span class="line"><span class="cl"><span class="m">1002</span>
+</span></span></code></pre></div><p>返回的数据就是按直线距离排序好的成员ID。其中参数<code>5 km</code>就是限制距离范围。支持多种单位长度</p>
 <ul>
 <li>m表中单位为米</li>
 <li>km表示千米</li>
@@ -135,20 +135,20 @@
 </ul>
 <h4 id="根据已有成员">根据已有成员</h4>
 <p>也可以直接根据已有成员的经纬度获得数据</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEORADIUSBYMEMBER  data:locations <span class="m">1001</span> <span class="m">5</span> km ASC COUNT <span class="m">3</span> WITHDIST WITHCOORD
-<span class="m">1001</span>
-0.0000
-114.14370328187942505
-22.40859655827627961
-<span class="m">1002</span>
-1.1170
-114.14270013570785522
-22.41859603324986239
-<span class="m">1003</span>
-1.4382
-114.15269941091537476
-22.41849717912464968
-</code></pre></div><p>这里我们是直接根据已有成员的经纬度获得的数据，输入的参数是成员的ID。
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">&gt; GEORADIUSBYMEMBER  data:locations <span class="m">1001</span> <span class="m">5</span> km ASC COUNT <span class="m">3</span> WITHDIST WITHCOORD
+</span></span><span class="line"><span class="cl"><span class="m">1001</span>
+</span></span><span class="line"><span class="cl">0.0000
+</span></span><span class="line"><span class="cl">114.14370328187942505
+</span></span><span class="line"><span class="cl">22.40859655827627961
+</span></span><span class="line"><span class="cl"><span class="m">1002</span>
+</span></span><span class="line"><span class="cl">1.1170
+</span></span><span class="line"><span class="cl">114.14270013570785522
+</span></span><span class="line"><span class="cl">22.41859603324986239
+</span></span><span class="line"><span class="cl"><span class="m">1003</span>
+</span></span><span class="line"><span class="cl">1.4382
+</span></span><span class="line"><span class="cl">114.15269941091537476
+</span></span><span class="line"><span class="cl">22.41849717912464968
+</span></span></code></pre></div><p>这里我们是直接根据已有成员的经纬度获得的数据，输入的参数是成员的ID。
 其中通过增加参数获得额外的信息</p>
 <ul>
 <li>WITHDIST	返回与给定目标的直线距离</li>
@@ -157,32 +157,32 @@
 <p>需要注意的是，ID为1001的自身也会一并返回。</p>
 <h3 id="计算距离">计算距离</h3>
 <p>根据两个成员计算距离</p>
-<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">&gt; GEODIST data:locations <span class="m">1001</span> <span class="m">1002</span> m
-1116.9774
-</code></pre></div><p>返回的结果为1116.9774，单位为米，同样的，可以通过参数指定单位。
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">&gt; GEODIST data:locations <span class="m">1001</span> <span class="m">1002</span> m
+</span></span><span class="line"><span class="cl">1116.9774
+</span></span></code></pre></div><p>返回的结果为1116.9774，单位为米，同样的，可以通过参数指定单位。
 和手写的计算距离的函数对比一下结果。</p>
-<div class="highlight"><pre class="chroma"><code class="language-php" data-lang="php"><span class="nv">$lng1</span> <span class="o">=</span> <span class="mf">114.14370328187942505</span><span class="p">;</span>
-<span class="nv">$lat1</span> <span class="o">=</span> <span class="mf">22.40859655827627961</span><span class="p">;</span>
-<span class="nv">$lng2</span> <span class="o">=</span> <span class="mf">114.14270013570785522</span><span class="p">;</span>
-<span class="nv">$lat2</span> <span class="o">=</span> <span class="mf">22.41859603324986239</span><span class="p">;</span>
-
-<span class="c1">//将角度转为狐度
-</span><span class="c1"></span><span class="nv">$radLat1</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lat1</span><span class="p">);</span><span class="c1">//deg2rad()函数将角度转换为弧度
-</span><span class="c1"></span><span class="nv">$radLat2</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lat2</span><span class="p">);</span>
-<span class="nv">$radLng1</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lng1</span><span class="p">);</span>
-<span class="nv">$radLng2</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lng2</span><span class="p">);</span>
-<span class="nv">$a</span> <span class="o">=</span> <span class="nv">$radLat1</span> <span class="o">-</span> <span class="nv">$radLat2</span><span class="p">;</span>
-<span class="nv">$b</span> <span class="o">=</span> <span class="nv">$radLng1</span> <span class="o">-</span> <span class="nv">$radLng2</span><span class="p">;</span>
-<span class="nv">$s</span> <span class="o">=</span> <span class="nx">round</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="nx">asin</span><span class="p">(</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat2</span><span class="p">)</span> <span class="o">*</span> <span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$b</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span> <span class="o">*</span> <span class="mf">6378.137</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
-<span class="k">echo</span> <span class="nv">$s</span><span class="p">;</span>
-</code></pre></div><p>返回结果为<code>1118</code>米。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-php" data-lang="php"><span class="line"><span class="cl"><span class="nv">$lng1</span> <span class="o">=</span> <span class="mf">114.14370328187942505</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$lat1</span> <span class="o">=</span> <span class="mf">22.40859655827627961</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$lng2</span> <span class="o">=</span> <span class="mf">114.14270013570785522</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$lat2</span> <span class="o">=</span> <span class="mf">22.41859603324986239</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//将角度转为狐度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nv">$radLat1</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lat1</span><span class="p">);</span><span class="c1">//deg2rad()函数将角度转换为弧度
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nv">$radLat2</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lat2</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$radLng1</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lng1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$radLng2</span> <span class="o">=</span> <span class="nx">deg2rad</span><span class="p">(</span><span class="nv">$lng2</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$a</span> <span class="o">=</span> <span class="nv">$radLat1</span> <span class="o">-</span> <span class="nv">$radLat2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$b</span> <span class="o">=</span> <span class="nv">$radLng1</span> <span class="o">-</span> <span class="nv">$radLng2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">$s</span> <span class="o">=</span> <span class="nx">round</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="nx">asin</span><span class="p">(</span><span class="nx">sqrt</span><span class="p">(</span><span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat1</span><span class="p">)</span> <span class="o">*</span> <span class="nx">cos</span><span class="p">(</span><span class="nv">$radLat2</span><span class="p">)</span> <span class="o">*</span> <span class="nx">pow</span><span class="p">(</span><span class="nx">sin</span><span class="p">(</span><span class="nv">$b</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span><span class="mi">2</span><span class="p">)))</span> <span class="o">*</span> <span class="mf">6378.137</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">echo</span> <span class="nv">$s</span><span class="p">;</span>
+</span></span></code></pre></div><p>返回结果为<code>1118</code>米。</p>
 <h2 id="实现原理">实现原理</h2>
 <p>GEO 类型是把经纬度所在的区间编码作为 Sorted Set 中元素的权重分数，把和经纬度相关的 ID 作为 Sorted Set 中元素本身的值保存下来，本质上还是使用了有序集合存储数据。 这样相邻经纬度的查询就可以通过编码值的大小范围查询来实现了。<br>
 为了能高效地对经纬度进行比较，Redis 采用了业界广泛使用的 GeoHash 编码方法。
 GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
 <figure style="flex-grow: 373; flex-basis: 897px">
 		<a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333.png" data-size="1215x325"><img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333.png"
-				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_480x0_resize_box_2.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_1024x0_resize_box_2.png 1024w"
+				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_480x0_resize_box_3.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/333_hu66cd75b041c07a9887c2cb1ee9937859_14219_1024x0_resize_box_3.png 1024w"
 				width="1215"
 				height="325"
 				loading="lazy"
@@ -196,7 +196,7 @@ GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
 <p>利用GEO类型，可以很方便的获得计算距离的数据
 <figure style="flex-grow: 133; flex-basis: 321px">
 		<a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4.png" data-size="477x356"><img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4.png"
-				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_480x0_resize_box_2.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_1024x0_resize_box_2.png 1024w"
+				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_480x0_resize_box_3.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/4_hu8eacff793a6ba77747adbe17c4760591_205006_1024x0_resize_box_3.png 1024w"
 				width="477"
 				height="356"
 				loading="lazy"
@@ -209,7 +209,7 @@ GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
 <p>还有这种按距离由近及远取周边物件的。
 <figure style="flex-grow: 212; flex-basis: 510px">
 		<a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5.png" data-size="1145x538"><img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5.png"
-				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_480x0_resize_box_2.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_1024x0_resize_box_2.png 1024w"
+				srcset="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_480x0_resize_box_3.png 480w, /p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/5_hu8d718b49aee95207692106cdd5143631_495449_1024x0_resize_box_3.png 1024w"
 				width="1145"
 				height="538"
 				loading="lazy"
@@ -232,18 +232,6 @@ GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
     </section>
 
 
-    
-    <section class="article-copyright">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-  <path stroke="none" d="M0 0h24v24H0z"/>
-  <circle cx="12" cy="12" r="9" />
-  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
-</svg>
-
-
-
-        <span>Licensed under CC BY-NC-SA 4.0</span>
-    </section>
     </footer>
 
     
@@ -260,7 +248,7 @@ GeoHash的编码实现的方法有点复杂，有兴趣的可以自行研究。
     <div class="disqus-container">
     <div id="disqus_thread"></div>
 <script type="application/javascript">
-    var disqus_config = function () {
+    window.disqus_config = function () {
     
     
     
