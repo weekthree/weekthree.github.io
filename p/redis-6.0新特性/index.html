@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-cn" dir="ltr">
     <head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='早在去年5月，Redis 6.0 的稳定版就已经发布。到今天为止，最新稳定版已经到6.2.6了。我们来看一下，Redis 6.0有哪些值得关注的新特性。'><title>Redis 6.0新特性</title>
 
 <link rel='canonical' href='https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/'>
 
-<link rel="stylesheet" href="/scss/style.min.css"><meta property='og:title' content='Redis 6.0新特性'>
+<link rel="stylesheet" href="/scss/style.min.ac77dcf8b111b51da39a92990f431923f210f3876d85798a2125667f96dc33a4.css"><meta property='og:title' content='Redis 6.0新特性'>
 <meta property='og:description' content='早在去年5月，Redis 6.0 的稳定版就已经发布。到今天为止，最新稳定版已经到6.2.6了。我们来看一下，Redis 6.0有哪些值得关注的新特性。'>
 <meta property='og:url' content='https://weekthree.github.io/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/'>
 <meta property='og:site_name' content='随笔记'>
@@ -17,8 +17,8 @@
 
     </head>
     <body class="
-    article-page has-toc
-">
+    article-page
+    ">
     <script>
         (function() {
             const colorSchemeKey = 'StackColorScheme';
@@ -41,25 +41,181 @@
         }
     })();
 </script>
-<div class="container main-container flex 
-    
-        extended
-    
-">
-    
-        <div id="article-toolbar">
-            <a href="https://weekthree.github.io/" class="back-home">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu5aaaf6affbaf156050dc84ec51546af6_36053_300x0_resize_box_3.png" width="300"
+                            height="270" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">随笔记</a></h1>
+            <h2 class="site-description">泰山不让土壤,故能成其大。河海不择细流,故能就其深。</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/weekthree/'
+                        target="_blank"
+                        title="GitHub"
+                    >
+                        
+                        
+                            <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1656486539399" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1663" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css">@font-face { font-family: feedback-iconfont; src: url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff2?t=1630033759944") format("woff2"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff?t=1630033759944") format("woff"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.ttf?t=1630033759944") format("truetype"); }
+</style></defs><path d="M960 512c0 97.76-28.704 185.216-85.664 263.264-56.96 78.016-130.496 131.84-220.64 161.856-10.304 1.824-18.368 0.448-22.848-4.032a22.4 22.4 0 0 1-7.2-17.504v-122.88c0-37.632-10.304-65.44-30.464-82.912a409.856 409.856 0 0 0 59.616-10.368 222.752 222.752 0 0 0 54.72-22.816c18.848-10.784 34.528-23.36 47.104-38.592 12.544-15.232 22.848-35.904 30.912-61.44 8.096-25.568 12.128-54.688 12.128-87.904 0-47.072-15.232-86.976-46.208-120.16 14.368-35.456 13.024-74.912-4.48-118.848-10.752-3.616-26.432-1.344-47.072 6.272s-38.56 16.16-53.824 25.568l-21.984 13.888c-36.32-10.304-73.536-15.232-112.096-15.232s-75.776 4.928-112.096 15.232a444.48 444.48 0 0 0-24.672-15.68c-10.336-6.272-26.464-13.888-48.896-22.432-21.952-8.96-39.008-11.232-50.24-8.064-17.024 43.936-18.368 83.424-4.032 118.848-30.496 33.632-46.176 73.536-46.176 120.608 0 33.216 4.032 62.336 12.128 87.456 8.032 25.12 18.368 45.76 30.496 61.44 12.544 15.68 28.224 28.704 47.072 39.04 18.848 10.304 37.216 17.92 54.72 22.816a409.6 409.6 0 0 0 59.648 10.368c-15.712 13.856-25.12 34.048-28.704 60.064a99.744 99.744 0 0 1-26.464 8.512 178.208 178.208 0 0 1-33.184 2.688c-13.024 0-25.568-4.032-38.144-12.544-12.544-8.512-23.296-20.64-32.256-36.32a97.472 97.472 0 0 0-28.256-30.496c-11.232-8.064-21.088-12.576-28.704-13.92l-11.648-1.792c-8.096 0-13.92 0.928-17.056 2.688-3.136 1.792-4.032 4.032-2.688 6.72s3.136 5.408 5.376 8.096 4.928 4.928 7.616 7.168l4.032 2.688c8.544 4.032 17.056 11.232 25.568 21.984 8.544 10.752 14.368 20.64 18.4 29.6l5.824 13.44c4.928 14.816 13.44 26.912 25.568 35.872 12.096 8.992 25.088 14.816 39.008 17.504 13.888 2.688 27.36 4.032 40.352 4.032s23.776-0.448 32.288-2.24l13.472-2.24c0 14.784 0 32.288 0.416 52.032 0 19.744 0.48 30.496 0.48 31.392a22.624 22.624 0 0 1-7.648 17.472c-4.928 4.48-12.992 5.824-23.296 4.032-90.144-30.048-163.68-83.84-220.64-161.888C92.256 697.216 64 609.312 64 512c0-81.152 20.192-156.064 60.096-224.672s94.176-122.88 163.232-163.232C355.936 84.192 430.816 64 512 64s156.064 20.192 224.672 60.096 122.88 94.176 163.232 163.232C939.808 355.488 960 430.848 960 512" fill="#000000" p-id="1664"></path></svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://www.yuque.com/samuel-is4hb'
+                        target="_blank"
+                        title="语雀"
+                    >
+                        
+                        
+                            <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1656486433714" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="606" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css">@font-face { font-family: feedback-iconfont; src: url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff2?t=1630033759944") format("woff2"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff?t=1630033759944") format("woff"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.ttf?t=1630033759944") format("truetype"); }
+</style></defs><path d="M228.7 643.9c-0.1 0.1-0.2 0.3-0.3 0.4 3.9-4.4 8-9 12-13.5-7.5 8.4-11.7 13.1-11.7 13.1z" fill="#1590E9" p-id="607"></path><path d="M894 298.1l25.6-15.1c10.4-6.1 9.1-21.5-2.1-25.9l-12.3-4.8c-18-7.1-34.2-18.2-46.7-33-15.7-18.5-44.7-45.1-90.9-60.8-52.7-18-142.9-14.4-193.2-10.5-15.9 1.2-25 18.4-17.4 32.5 42.6 78.6 16.7 114.3-5.7 140.7-34.3 40.4-97.4 112.2-160.7 183.6 21.9-24.5 41.8-46.8 58.1-65.1 36.4-40.8 91.3-61.5 145.1-51.7 171.5 31.3 191 253.4-9.2 385.6 26.1-1.4 52.6-3.3 79.2-6 252.6-26 272.6-232.1 218-333.9-19.4-36.1-22.2-60.5-20.1-83.9 2-21.5 13.8-40.8 32.3-51.7z" fill="#99C236" p-id="608"></path><path d="M212.8 704.5C241.1 672.9 316 589 390.7 504.7c-54.6 61.2-121.8 136.7-177.9 199.8z" fill="#1590E9" p-id="609"></path><path d="M216.3 758.6c-19.5-2.5-28.2-25.6-15.5-40.6-51.7 58.3-91.7 103.5-99.1 112.6-24.1 29.5 247.7 97.9 482.6-56.8 0.1-0.1 0.3-0.2 0.4-0.3-156.5 8.2-298.5-5.9-368.4-14.9z" fill="#CAC134" p-id="610"></path><path d="M593.9 387.9c-53.8-9.8-108.7 10.9-145.1 51.7-16.3 18.2-36.2 40.5-58.1 65.1C316 589 241.1 672.9 212.8 704.5c-4.1 4.6-8.1 9.1-12 13.5-12.7 14.9-4 38 15.5 40.6 69.9 9 211.9 23.1 368.3 15 200.2-132.3 180.8-354.4 9.3-385.7z" fill="#029F40" p-id="611"></path></svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
   <path stroke="none" d="M0 0h24v24H0z"/>
-  <polyline points="15 6 9 12 15 18" />
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
 </svg>
 
 
 
-                <span>返回</span>
+                
+                <span>主页</span>
             </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/about' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/archives' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/search' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
         </div>
-    
+    </ol>
+</aside>
 <main class="main full-width">
     <article class="has-image main-article">
     <header class="article-header">
@@ -80,23 +236,45 @@
     
     <header class="article-category">
         
-            <a href="/categories/redis/" >
-                redis
+            <a href="/categories/redis/" style="background-color: #2a9d8f; color: #fff;">
+                Redis
             </a>
         
     </header>
     
 
-    <h2 class="article-title">
-        <a href="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/">Redis 6.0新特性</a>
-    </h2>
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/">Redis 6.0新特性</a>
+        </h2>
+    
+        
+        <h3 class="article-subtitle">
+            早在去年5月，Redis 6.0 的稳定版就已经发布。到今天为止，最新稳定版已经到6.2.6了。我们来看一下，Redis 6.0有哪些值得关注的新特性。
+        </h3>
+        
+    </div>
 
     
-    <h3 class="article-subtitle">
-        早在去年5月，Redis 6.0 的稳定版就已经发布。到今天为止，最新稳定版已经到6.2.6了。我们来看一下，Redis 6.0有哪些值得关注的新特性。
-    </h3>
     <footer class="article-time">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2021-11-09</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
   <path stroke="none" d="M0 0h24v24H0z"/>
   <circle cx="12" cy="12" r="9" />
   <polyline points="12 7 12 12 15 15" />
@@ -104,26 +282,38 @@
 
 
 
-        <time class="article-time--published">2021-11-09</time>
-    </footer></div>
+                <time class="article-time--reading">
+                    阅读时长: 2 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
 </header>
 
     <section class="article-content">
+    
+    
     <h2 id="io-多线程">IO 多线程</h2>
 <p>Redis 一直被大家熟知的就是它的单线程架构，虽然有些命令操作可以用后台线程或子进程执行（比如数据删除、快照生成、AOF 重写），但是，从网络 IO 处理到实际的读写命令处理，都是由单个线程完成的。</p>
 <p>在 6.0 版本之前，Redis采用了采用了多路 I/O 复用技术，这里的多路指的是多个 socket 网络连接，复用指的是复用同一个线程。通过多路 I/O 复用技术在同一个线程中处理多个 I/O 请求，尽量减少网络 I/O 的消耗，提升使用效率。
-<figure style="flex-grow: 154; flex-basis: 370px">
-		<a href="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png" data-size="1157x750"><img src="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png"
-				srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_480x0_resize_box_3.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_1024x0_resize_box_3.png 1024w"
-				width="1157"
-				height="750"
-				loading="lazy"
-				alt="基于多路复用的Redis高性能IO模型">
-		</a>
-		
-		<figcaption>基于多路复用的Redis高性能IO模型</figcaption>
-		
-	</figure>
+<img src="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2.png"
+	width="1157"
+	height="750"
+	srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_480x0_resize_box_3.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/2_huce7b8326d6081d24e035fcfa165f45af_178115_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="基于多路复用的Redis高性能IO模型"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="154"
+		data-flex-basis="370px"
+	
+>
 但随着网络硬件的性能提升，Redis的性能瓶颈有时会出现在网络 IO 的处理上，单个主线程处理网络请求的速度跟不上底层网络硬件的速度。</p>
 <p>在 6.0 版本中，Redis把请求网络包读写和解析也从主线程中剥离出来了。</p>
 <p><strong>Redis 6.0 采用多个 IO 线程来处理网络请求，提高网络请求处理的并行度。但是对于读写命令，仍然使用单线程来处理。</strong></p>
@@ -142,26 +332,39 @@
 <li>IO线程回写 Socket 和主线程清空全局队列</li>
 </ol>
 <p>在第2、4阶段，由于加入了 IO 多线程，多个 IO 线程并行处理读取与解析请求，以及回写 Socket 的操作都会很快。因此可以加速网络处理，进而提升实例的吞吐量。
-<figure style="flex-grow: 99; flex-basis: 238px">
-		<a href="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png" data-size="573x577"><img src="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png"
-				srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_480x0_resize_box_3.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_1024x0_resize_box_3.png 1024w"
-				width="573"
-				height="577"
-				loading="lazy"
-				alt="IO多线程处理流程">
-		</a>
-		
-		<figcaption>IO多线程处理流程</figcaption>
-		
-	</figure></p>
+<img src="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3.png"
+	width="573"
+	height="577"
+	srcset="/p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_480x0_resize_box_3.png 480w, /p/redis-6.0%E6%96%B0%E7%89%B9%E6%80%A7/3_hufeb398c39e4bf2495ee238404801499d_29503_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="IO多线程处理流程"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="99"
+		data-flex-basis="238px"
+	
+></p>
 <h3 id="开启多线程">开启多线程</h3>
 <p>默认情况下，多线程是关闭的。如果需要启动，要在 <code>redis.conf</code> 进行以下配置。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#启用多线程</span>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#启用多线程</span>
 </span></span><span class="line"><span class="cl">io-threads-do-reads yes
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="c1">#设置线程个数</span>
 </span></span><span class="line"><span class="cl">io-threads  <span class="m">6</span>
-</span></span></code></pre></div><p>需要注意的是，线程个数要小于实例所在的 CPU 核个数。对于 8 核 CPU 的机器，官方建议配置 6 个 IO 线程。
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>需要注意的是，线程个数要小于实例所在的 CPU 核个数。对于 8 核 CPU 的机器，官方建议配置 6 个 IO 线程。
 <!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h2 id="权限控制">权限控制</h2>
 <p>在 Redis 6.0 版本之前，只能通过创建一个密码来进行安全控制。只要知道密码，就能执行类似 <code>KEYS、FLUSHDB、FLUSHALL</code> 等各种危险的操作。</p>
@@ -172,29 +375,64 @@
 <p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="创建不同用户">创建不同用户</h3>
 <p>Redis 6.0 版本之前所有使用者通过一个密码登陆使用，没有账号的概念。而在 Redis 6.0 可以通过使用 <code>ACL SETUSER</code> 给使用者创建不同的用户账号。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#创建并启用samuel账号，密码为123</span>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#创建并启用samuel账号，密码为123</span>
 </span></span><span class="line"><span class="cl">ACL SETUSER samuel on &gt;123
-</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="根据命令操作设置访问权限">根据命令操作设置访问权限</h3>
 <p>Redis 6.0 支持以用户为粒度设置命令操作的访问权限。<!-- raw HTML omitted -->例如：</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#给用户 samuel 开启 get 操作的权限。</span>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#给用户 samuel 开启 get 操作的权限。</span>
 </span></span><span class="line"><span class="cl">ACL SETUSER samuel +get
-</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="根据类型设置访问权限">根据类型设置访问权限</h3>
 <p>也可以根据不同的数据类型来给用户授权<!-- raw HTML omitted -->例如：</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#限制用户只能操作 Hash 类的命令，不能调用 String 类型的命令</span>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#限制用户只能操作 Hash 类的命令，不能调用 String 类型的命令</span>
 </span></span><span class="line"><span class="cl">ACL SETUSER samuel +@hash -@string
-</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h3 id="根据key设置访问权限">根据key设置访问权限</h3>
 <p>使用波浪号 &ldquo;~&rdquo; 和 key 的前缀来表示访问控制的 key。<!-- raw HTML omitted -->例如：</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#设置用户 samuel 只能对以 &#34;user:&#34; 为前缀的 key 进行命令操作</span>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="c1">#设置用户 samuel 只能对以 &#34;user:&#34; 为前缀的 key 进行命令操作</span>
 </span></span><span class="line"><span class="cl">ACL SETUSER samuel ~user:* +@all
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="c1">#设置用户 samuel 可以进行所有操作</span>
 </span></span><span class="line"><span class="cl">ACL SETUSER samuel ~* +@all
-</span></span></code></pre></div><p>Redis 6.0 可以创建不同用户来访问实例，而且可以基于用户和 key 的粒度，设置某个用户对某些 key 允许或禁止执行的命令操作。</p>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Redis 6.0 可以创建不同用户来访问实例，而且可以基于用户和 key 的粒度，设置某个用户对某些 key 允许或禁止执行的命令操作。</p>
 <p>这样一来，我们在有多用户的 Redis 应用场景下，就可以非常方便和灵活地为不同用户设置不同级别的命令操作权限，这对于提供安全的 Redis 访问非常有帮助。</p>
-<table>
+<div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>操作</th>
@@ -227,7 +465,7 @@
 <td>禁止调用所有命令操作</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
 <h2 id="客户端缓存">客户端缓存</h2>
 <p>Redis 6.0 新增了跟踪 （Tracking）功能，也就是实现了服务端协助的客户端缓存，业务应用中 Redis 客户端可以把读取的数据缓存在业务应用本地了，应用就可以直接在本地快速读取数据了。</p>
@@ -236,8 +474,15 @@
 <h3 id="普通模式">普通模式</h3>
 <p>这种模式下，实例会在客户端记录客户端读取过的 key，并检测 key 是否有修改。一旦 key 的值发生变化，服务端会给客户端发送 invalidate 消息。通知客户端缓存失效，客户端下次请求就需要从服务端获取最新数据。</p>
 <p>通过以下命令开启或关闭普通模式下 Tracking 功能。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">CLIENT TRACKING ON<span class="p">|</span>OFF
-</span></span></code></pre></div><p>需要注意的是，为了节省服务端的内存空间，对于客户端不再访问的 key ，服务端是不会记录这个 key 的修改情况的。就算是之前已经发送过 invalidate 消息的key，如果此后客户端没有再次执行读命令。之后这个 key 再被修改，服务端就不会再次给客户端发送 invalidate 消息。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">CLIENT TRACKING ON<span class="p">|</span>OFF
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>需要注意的是，为了节省服务端的内存空间，对于客户端不再访问的 key ，服务端是不会记录这个 key 的修改情况的。就算是之前已经发送过 invalidate 消息的key，如果此后客户端没有再次执行读命令。之后这个 key 再被修改，服务端就不会再次给客户端发送 invalidate 消息。</p>
 <p>总结：Server 端全局唯一的表（Invalidation Table）记录每个Client访问的Key，当发生变更时，向client推送数据过期消息。</p>
 <ul>
 <li>优点：只对Client发送其访问过的被修改的数据</li>
@@ -247,8 +492,15 @@
 <h3 id="广播模式">广播模式</h3>
 <p>这种模式下，服务端会给客户端广播所有 key 的失效情况。</p>
 <p>为了防止 key 在频繁修改的情况下，服务端发送大量失效广播消息造成大量网络带宽资源被消耗。客户端需要跟踪指定前缀的 key，这样让服务端针对性的发送失效信息给客户端。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">CLIENT TRACKING ON BCAST PREFIX user
-</span></span></code></pre></div><p>类似上面的命令操作。只有更新了 user: 前缀的key，客户端才会收到 invalidate 消息。<!-- raw HTML omitted -->和普通模式不同，就算客户端还没有读取过 key，只要注册了跟踪前缀，服务端就会把这个 key 失效消息通知给客户端。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">CLIENT TRACKING ON BCAST PREFIX user
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>类似上面的命令操作。只有更新了 user: 前缀的key，客户端才会收到 invalidate 消息。<!-- raw HTML omitted -->和普通模式不同，就算客户端还没有读取过 key，只要注册了跟踪前缀，服务端就会把这个 key 失效消息通知给客户端。</p>
 <p>总结：客户端订阅 key 前缀的广播，服务端记录 key 前缀与 client 的对应关系。当相匹配的 key 发生变化时通知 client</p>
 <ul>
 <li>优点：服务端记录信息比较少</li>
@@ -280,18 +532,63 @@
     </section>
 
 
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
     </footer>
+
 
     
 </article>
 
-    <aside class="related-contents--wrapper">
     
+
     
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="has-image">
+    <a href="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/">
+        
+        
+            <div class="article-image">
+                <img src="/p/%E5%9F%BA%E4%BA%8Eredis-geo%E5%AE%9E%E7%8E%B0%E7%9A%84lbs%E5%8A%9F%E8%83%BD/113958-153525479855be.d6313ed729722202f0a8d56d2f7dfb2e_hucaf497879fd88850870101187042854f_810097_250x150_fill_q75_box_smart1.jpg" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post 基于Redis GEO实现的LBS功能"
+                        
+                        data-hash="md5-1jE&#43;1ylyIgLwqNVtL337Lg==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">基于Redis GEO实现的LBS功能</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
 </aside>
 
      
-     
+    
         
     <div class="disqus-container">
     <div id="disqus_thread"></div>
@@ -327,7 +624,7 @@
 
 <script>
     window.addEventListener('onColorSchemeChange', (e) => {
-        if (DISQUS) {
+        if (typeof DISQUS == 'object') {
             DISQUS.reset({
                 reload: true
             });
@@ -341,7 +638,7 @@
     <section class="copyright">
         &copy; 
         
-            2020 - 
+            2019 - 
         
         2022 随笔记
     </section>
@@ -350,9 +647,10 @@
         
             让知识汇聚成大海 <br/>
         Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
-        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="2.5.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.12.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
     </section>
 </footer>
+
 
     
 <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
@@ -418,26 +716,28 @@
 
 </div><script 
                 src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
-                defer="true"
+                defer
                 >
             </script><script 
                 src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
-                defer="true"
+                defer
                 >
             </script><link 
                 rel="stylesheet" 
-                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css"integrity="sha256-c0uckgykQ9v5k&#43;IqViZOZKc47Jn7KQil4/MP3ySA3F8="crossorigin="anonymous"
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
             ><link 
                 rel="stylesheet" 
-                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css"integrity="sha256-SBLU4vv6CA6lHsZ1XyTdhyjJxCjPif/TRkjnsyGAGnE="crossorigin="anonymous"
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
             >
 
             </main>
-    
-        <aside class="sidebar right-sidebar sticky">
-            <section class="widget archives">
-                <div class="widget-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
   <path stroke="none" d="M0 0h24v24H0z"/>
   <line x1="5" y1="9" x2="19" y2="9" />
   <line x1="5" y1="15" x2="19" y2="15" />
@@ -447,11 +747,11 @@
 
 
 
-                </div>
-                <h2 class="widget-title section-title">目录</h2>
-                
-                <div class="widget--toc">
-                    <nav id="TableOfContents">
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
   <ol>
     <li><a href="#io-多线程">IO 多线程</a>
       <ol>
@@ -478,15 +778,18 @@
     <li><a href="#参考">参考</a></li>
   </ol>
 </nav>
-                </div>
-            </section>
-        </aside>
-    
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
 
         </div>
         <script 
-                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.5/dist/vibrant.min.js"integrity="sha256-5NovOZc4iwiAWTYIFiIM7DxKUXKWvpVEuMEPLzcm5/g="crossorigin="anonymous"
-                defer="false"
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
                 >
             </script><script type="text/javascript" src="/ts/main.js" defer></script>
 <script>
