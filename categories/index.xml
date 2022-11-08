@@ -6,7 +6,15 @@
         <description>Recent content in Categories on 随笔记</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
-        <lastBuildDate>Fri, 10 Jun 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://weekthree.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Tue, 08 Nov 2022 14:44:58 +0800</lastBuildDate><atom:link href="https://weekthree.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>Elasticsearch </title>
+        <link>https://weekthree.github.io/categories/elasticsearch/</link>
+        <pubDate>Tue, 08 Nov 2022 14:44:58 +0800</pubDate>
+        
+        <guid>https://weekthree.github.io/categories/elasticsearch/</guid>
+        <description>&lt;img src="https://weekthree.github.io/categories/elasticsearch/Elasticsearch.png" alt="Featured image of post Elasticsearch " /&gt;</description>
+        </item>
+        <item>
         <title>PHP</title>
         <link>https://weekthree.github.io/categories/php/</link>
         <pubDate>Fri, 10 Jun 2022 00:00:00 +0000</pubDate>

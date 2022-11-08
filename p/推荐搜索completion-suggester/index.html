@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='定义 现代的搜索引擎，一般会具备“Suggest As You Type&amp;quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。 例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。 当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。 例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。 要实现以上的功能，就需要解决以下三个问题：
+精确率 也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。
+召回率 召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。
+响应速度 响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。
+like 模糊查询 使用数据库like实现，语法如下：
+1 select * from table where name like ‘%太古%’ or address ‘%太古%’... 使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。
+效率差 不管是使用前缀，中缀还是后缀like查询，效率都不尽人意。如果涉及多个字段还需要使用or查询。在查询数据量稍微大一点的表，查询速度很难让人接受。
+召回率低 like查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。
+结论 使用like实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。
+Completion Suggester 我们先看下官网对于Completion Suggester的介绍：
+The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters.'><title>推荐搜索:Completion Suggester</title>
+
+<link rel='canonical' href='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/'>
+
+<link rel="stylesheet" href="/scss/style.min.ac77dcf8b111b51da39a92990f431923f210f3876d85798a2125667f96dc33a4.css"><meta property='og:title' content='推荐搜索:Completion Suggester'>
+<meta property='og:description' content='定义 现代的搜索引擎，一般会具备“Suggest As You Type&amp;quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。 例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。 当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。 例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。 要实现以上的功能，就需要解决以下三个问题：
+精确率 也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。
+召回率 召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。
+响应速度 响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。
+like 模糊查询 使用数据库like实现，语法如下：
+1 select * from table where name like ‘%太古%’ or address ‘%太古%’... 使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。
+效率差 不管是使用前缀，中缀还是后缀like查询，效率都不尽人意。如果涉及多个字段还需要使用or查询。在查询数据量稍微大一点的表，查询速度很难让人接受。
+召回率低 like查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。
+结论 使用like实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。
+Completion Suggester 我们先看下官网对于Completion Suggester的介绍：
+The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters.'>
+<meta property='og:url' content='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/'>
+<meta property='og:site_name' content='随笔记'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Elasticsearch' /><meta property='article:tag' content='数据库' /><meta property='article:published_time' content='2022-11-08T14:44:58&#43;08:00'/><meta property='article:modified_time' content='2022-11-08T14:44:58&#43;08:00'/><meta property='og:image' content='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo.png' />
+<meta name="twitter:title" content="推荐搜索:Completion Suggester">
+<meta name="twitter:description" content="定义 现代的搜索引擎，一般会具备“Suggest As You Type&amp;quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。 例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。 当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。 例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。 要实现以上的功能，就需要解决以下三个问题：
+精确率 也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。
+召回率 召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。
+响应速度 响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。
+like 模糊查询 使用数据库like实现，语法如下：
+1 select * from table where name like ‘%太古%’ or address ‘%太古%’... 使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。
+效率差 不管是使用前缀，中缀还是后缀like查询，效率都不尽人意。如果涉及多个字段还需要使用or查询。在查询数据量稍微大一点的表，查询速度很难让人接受。
+召回率低 like查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。
+结论 使用like实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。
+Completion Suggester 我们先看下官网对于Completion Suggester的介绍：
+The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters."><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo.png' />
+    <link rel="shortcut icon" href="/img/favicon.ico" />
+
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/tx_hue90c0fabf2a82740eaa1aeae73dff278_7987_300x0_resize_box.gif" width="300"
+                            height="326" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🍥</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">随笔记</a></h1>
+            <h2 class="site-description">泰山不让土壤,故能成其大。河海不择细流,故能就其深。</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/weekthree/'
+                        target="_blank"
+                        title="GitHub"
+                    >
+                        
+                        
+                            <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1656486539399" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1663" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css">@font-face { font-family: feedback-iconfont; src: url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff2?t=1630033759944") format("woff2"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff?t=1630033759944") format("woff"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.ttf?t=1630033759944") format("truetype"); }
+</style></defs><path d="M960 512c0 97.76-28.704 185.216-85.664 263.264-56.96 78.016-130.496 131.84-220.64 161.856-10.304 1.824-18.368 0.448-22.848-4.032a22.4 22.4 0 0 1-7.2-17.504v-122.88c0-37.632-10.304-65.44-30.464-82.912a409.856 409.856 0 0 0 59.616-10.368 222.752 222.752 0 0 0 54.72-22.816c18.848-10.784 34.528-23.36 47.104-38.592 12.544-15.232 22.848-35.904 30.912-61.44 8.096-25.568 12.128-54.688 12.128-87.904 0-47.072-15.232-86.976-46.208-120.16 14.368-35.456 13.024-74.912-4.48-118.848-10.752-3.616-26.432-1.344-47.072 6.272s-38.56 16.16-53.824 25.568l-21.984 13.888c-36.32-10.304-73.536-15.232-112.096-15.232s-75.776 4.928-112.096 15.232a444.48 444.48 0 0 0-24.672-15.68c-10.336-6.272-26.464-13.888-48.896-22.432-21.952-8.96-39.008-11.232-50.24-8.064-17.024 43.936-18.368 83.424-4.032 118.848-30.496 33.632-46.176 73.536-46.176 120.608 0 33.216 4.032 62.336 12.128 87.456 8.032 25.12 18.368 45.76 30.496 61.44 12.544 15.68 28.224 28.704 47.072 39.04 18.848 10.304 37.216 17.92 54.72 22.816a409.6 409.6 0 0 0 59.648 10.368c-15.712 13.856-25.12 34.048-28.704 60.064a99.744 99.744 0 0 1-26.464 8.512 178.208 178.208 0 0 1-33.184 2.688c-13.024 0-25.568-4.032-38.144-12.544-12.544-8.512-23.296-20.64-32.256-36.32a97.472 97.472 0 0 0-28.256-30.496c-11.232-8.064-21.088-12.576-28.704-13.92l-11.648-1.792c-8.096 0-13.92 0.928-17.056 2.688-3.136 1.792-4.032 4.032-2.688 6.72s3.136 5.408 5.376 8.096 4.928 4.928 7.616 7.168l4.032 2.688c8.544 4.032 17.056 11.232 25.568 21.984 8.544 10.752 14.368 20.64 18.4 29.6l5.824 13.44c4.928 14.816 13.44 26.912 25.568 35.872 12.096 8.992 25.088 14.816 39.008 17.504 13.888 2.688 27.36 4.032 40.352 4.032s23.776-0.448 32.288-2.24l13.472-2.24c0 14.784 0 32.288 0.416 52.032 0 19.744 0.48 30.496 0.48 31.392a22.624 22.624 0 0 1-7.648 17.472c-4.928 4.48-12.992 5.824-23.296 4.032-90.144-30.048-163.68-83.84-220.64-161.888C92.256 697.216 64 609.312 64 512c0-81.152 20.192-156.064 60.096-224.672s94.176-122.88 163.232-163.232C355.936 84.192 430.816 64 512 64s156.064 20.192 224.672 60.096 122.88 94.176 163.232 163.232C939.808 355.488 960 430.848 960 512" fill="#000000" p-id="1664"></path></svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://www.yuque.com/samuel-is4hb'
+                        target="_blank"
+                        title="语雀"
+                    >
+                        
+                        
+                            <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg t="1656486433714" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="606" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css">@font-face { font-family: feedback-iconfont; src: url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff2?t=1630033759944") format("woff2"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.woff?t=1630033759944") format("woff"), url("//at.alicdn.com/t/font_1031158_u69w8yhxdu.ttf?t=1630033759944") format("truetype"); }
+</style></defs><path d="M228.7 643.9c-0.1 0.1-0.2 0.3-0.3 0.4 3.9-4.4 8-9 12-13.5-7.5 8.4-11.7 13.1-11.7 13.1z" fill="#1590E9" p-id="607"></path><path d="M894 298.1l25.6-15.1c10.4-6.1 9.1-21.5-2.1-25.9l-12.3-4.8c-18-7.1-34.2-18.2-46.7-33-15.7-18.5-44.7-45.1-90.9-60.8-52.7-18-142.9-14.4-193.2-10.5-15.9 1.2-25 18.4-17.4 32.5 42.6 78.6 16.7 114.3-5.7 140.7-34.3 40.4-97.4 112.2-160.7 183.6 21.9-24.5 41.8-46.8 58.1-65.1 36.4-40.8 91.3-61.5 145.1-51.7 171.5 31.3 191 253.4-9.2 385.6 26.1-1.4 52.6-3.3 79.2-6 252.6-26 272.6-232.1 218-333.9-19.4-36.1-22.2-60.5-20.1-83.9 2-21.5 13.8-40.8 32.3-51.7z" fill="#99C236" p-id="608"></path><path d="M212.8 704.5C241.1 672.9 316 589 390.7 504.7c-54.6 61.2-121.8 136.7-177.9 199.8z" fill="#1590E9" p-id="609"></path><path d="M216.3 758.6c-19.5-2.5-28.2-25.6-15.5-40.6-51.7 58.3-91.7 103.5-99.1 112.6-24.1 29.5 247.7 97.9 482.6-56.8 0.1-0.1 0.3-0.2 0.4-0.3-156.5 8.2-298.5-5.9-368.4-14.9z" fill="#CAC134" p-id="610"></path><path d="M593.9 387.9c-53.8-9.8-108.7 10.9-145.1 51.7-16.3 18.2-36.2 40.5-58.1 65.1C316 589 241.1 672.9 212.8 704.5c-4.1 4.6-8.1 9.1-12 13.5-12.7 14.9-4 38 15.5 40.6 69.9 9 211.9 23.1 368.3 15 200.2-132.3 180.8-354.4 9.3-385.7z" fill="#029F40" p-id="611"></path></svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/about' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/archives' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/search' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/links' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>暗色模式</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+<main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/">
+                <img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo_hu44efd94575f8f9cd74316ca6d9b9b161_634898_800x0_resize_box_3.png"
+                        srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo_hu44efd94575f8f9cd74316ca6d9b9b161_634898_800x0_resize_box_3.png 800w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo_hu44efd94575f8f9cd74316ca6d9b9b161_634898_1600x0_resize_box_3.png 1600w"
+                        width="800" 
+                        height="441" 
+                        loading="lazy"
+                        alt="Featured image of post 推荐搜索:Completion Suggester" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/elasticsearch/" style="background-color: #ef56bf; color: #5fe;">
+                Elasticsearch 
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/">推荐搜索:Completion Suggester</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">2022-11-08</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    阅读时长: 2 分钟
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="定义">定义</h2>
+<p>现代的搜索引擎，一般会具备“Suggest As You Type&quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。
+例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。
+<img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/1.png"
+	width="750"
+	height="433"
+	srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/1_hud9620230898001bcecf1af17055cf1c4_228675_480x0_resize_box_3.png 480w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/1_hud9620230898001bcecf1af17055cf1c4_228675_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="173"
+		data-flex-basis="415px"
+	
+>
+当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。
+例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。
+<img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/2.png"
+	width="734"
+	height="461"
+	srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/2_hu61f9e4f95dbe9027544877252b99ea73_103612_480x0_resize_box_3.png 480w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/2_hu61f9e4f95dbe9027544877252b99ea73_103612_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="159"
+		data-flex-basis="382px"
+	
+>
+要实现以上的功能，就需要解决以下三个问题：</p>
+<h3 id="精确率">精确率</h3>
+<p>也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。</p>
+<h3 id="召回率">召回率</h3>
+<p>召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。</p>
+<h3 id="响应速度">响应速度</h3>
+<p>响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。</p>
+<h2 id="like-模糊查询">like 模糊查询</h2>
+<p>使用数据库<code>like</code>实现，语法如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="k">like</span><span class="w"> </span><span class="err">‘</span><span class="o">%</span><span class="err">太古</span><span class="o">%</span><span class="err">’</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="n">address</span><span class="w"> </span><span class="err">‘</span><span class="o">%</span><span class="err">太古</span><span class="o">%</span><span class="err">’</span><span class="p">...</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。</p>
+<h3 id="效率差">效率差</h3>
+<p>不管是使用前缀，中缀还是后缀<code>like</code>查询，效率都不尽人意。如果涉及多个字段还需要使用<code>or</code>查询。在查询数据量稍微大一点的表，查询速度很难让人接受。</p>
+<h3 id="召回率低">召回率低</h3>
+<p><code>like</code>查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。</p>
+<h3 id="结论">结论</h3>
+<p>使用<code>like</code>实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。</p>
+<h2 id="completion-suggester">Completion Suggester</h2>
+<p>我们先看下官网对于<code>Completion Suggester</code>的介绍：</p>
+<blockquote>
+<p>The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters.
+Ideally, auto-complete functionality should be as fast as a user types to provide instant feedback relevant to what a user has already typed in. Hence, completion suggester is optimized for speed. The suggester uses data structures that enable fast lookups, but are costly to build and are stored in-memory.</p>
+</blockquote>
+<p>根据官网的介绍，我们对其进行如下总结：</p>
+<ol>
+<li>completion suggester 适用于自动完成（补全）的场景，也就是根据用户输入进行前缀匹配。</li>
+<li>支持有限的纠错。</li>
+<li>速度很快，可以根据用户已经输入的内容即时反馈。</li>
+<li>数据存储在内存，并且会进行压缩（压缩比高）。</li>
+</ol>
+<h3 id="mapping">Mapping</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="err">PUT</span> <span class="err">completion_suggester</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;mappings&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;properties&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="nt">&#34;name&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;text&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;analyzer&#34;</span><span class="p">:</span> <span class="s2">&#34;ik_max_word&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;fields&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;suggest&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;completion&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;analyzer&#34;</span><span class="p">:</span> <span class="s2">&#34;ik_max_word&#34;</span>
+</span></span><span class="line"><span class="cl">          <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">      <span class="p">},</span>
+</span></span><span class="line"><span class="cl">      <span class="nt">&#34;name_en&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;text&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;analyzer&#34;</span><span class="p">:</span> <span class="s2">&#34;ik_max_word&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;fields&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;suggest&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;completion&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;analyzer&#34;</span><span class="p">:</span> <span class="s2">&#34;ik_max_word&#34;</span>
+</span></span><span class="line"><span class="cl">          <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">      <span class="p">},</span>
+</span></span><span class="line"><span class="cl">      <span class="nt">&#34;address&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;text&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;analyzer&#34;</span><span class="p">:</span> <span class="s2">&#34;ik_max_word&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;fields&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;suggest&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;completion&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&#34;analyzer&#34;</span><span class="p">:</span> <span class="s2">&#34;ik_max_word&#34;</span>
+</span></span><span class="line"><span class="cl">          <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="查询">查询</h3>
+<p>查询语句如下，需要注意的是<code>fuzzy</code>会影响纠错能力，需要根据实际情况调整参数设置，以达到最适合的参数设置。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="err">GET</span> <span class="err">completion_suggester/_search</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;suggest&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;estate_suggest&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="nt">&#34;prefix&#34;</span><span class="p">:</span> <span class="s2">&#34;太古&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="nt">&#34;completion&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;size&#34;</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;field&#34;</span><span class="p">:</span><span class="s2">&#34;name.suggest&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;skip_duplicates&#34;</span><span class="p">:</span><span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&#34;fuzzy&#34;</span><span class="p">:{</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;fuzziness&#34;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;transpositions&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;min_length&#34;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;prefix_length&#34;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">          <span class="nt">&#34;unicode_aware&#34;</span><span class="p">:</span><span class="kc">true</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="测试">测试</h3>
+<p>数据准备完成后，我们可以进行相应的测试，根据输入指定的内容，分析返回的结果和我们的预期是否有较大的偏差，以便我们调整参数设置。</p>
+<h4 id="1输入正确的前缀部分太古">1.输入正确的前缀部分：太古</h4>
+<p>这种没啥可说的，也是最基本的，效果和<code>MySQL</code>中的<code>like '太古%'</code>类似，优点是比<code>like</code>查询效率高出很多。
+<img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/3.png"
+	width="560"
+	height="642"
+	srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/3_hu330d78388e44ff70a3aabe2668fde543_18347_480x0_resize_box_3.png 480w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/3_hu330d78388e44ff70a3aabe2668fde543_18347_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="87"
+		data-flex-basis="209px"
+	
+></p>
+<h4 id="2输入的前缀部分有错误字符太谷城">2.输入的前缀部分有错误字符：太谷城</h4>
+<p>用户使用拼音输入法，将<code>古</code>错误的输入成<code>谷</code>，如果使用<code>like</code>在<code>MySQL</code>在模糊匹配，必然匹配不到任何内容。
+使用<code>Elasticsearch</code>的<code>Completion Suggester</code>就是实现纠错的功能，返回以<code>太*城</code>作为前缀的词条作为用户的联想输入内容，提高用户体验。
+<img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/4.png"
+	width="605"
+	height="476"
+	srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/4_hu636e8a8b2f530cb3196735cb77282256_13005_480x0_resize_box_3.png 480w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/4_hu636e8a8b2f530cb3196735cb77282256_13005_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="127"
+		data-flex-basis="305px"
+	
+></p>
+<h4 id="3指定的地址不存在太古城道10號">3.指定的地址不存在：太古城道10號</h4>
+<p>指定的地址并不存在，但是通过<code>fuzzy</code>设置，就能够返回临近的地址，例如太古城道14號、太古城道20號这些用户可能想看到的。
+<img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/5.png"
+	width="606"
+	height="593"
+	srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/5_hua0f8e7241a885d552f3148d14f5d0763_17692_480x0_resize_box_3.png 480w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/5_hua0f8e7241a885d552f3148d14f5d0763_17692_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="102"
+		data-flex-basis="245px"
+	
+></p>
+<h4 id="4英文名有部分有误kam-tan-terrace">4.英文名有部分有误：KAM Tan TERRACE</h4>
+<p>故意在英文名中间输错三个字符，原本是 <code>KAM DIN TERRACE</code>，但是经过<code>fuzzy</code>纠错设置，也是能给匹配预期的内容的。
+<img src="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/6.png"
+	width="686"
+	height="354"
+	srcset="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/6_hu6650f9ea56b741f87f669b23b3ec02fd_11538_480x0_resize_box_3.png 480w, /p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/6_hu6650f9ea56b741f87f669b23b3ec02fd_11538_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="193"
+		data-flex-basis="465px"
+	
+></p>
+<h3 id="总结">总结</h3>
+<p><code>completion</code>类型的数据会存储在内存中，查询速度非常快，因为经过了压缩，也不会特别占用内存。
+因为<code>Elasticsearch</code>的<code>completion</code>类型只支持前缀查询的特性，所以是非常适合用在<code>auto complete</code>功能上。并且经过适当的<code>fuzzy</code>参数设置，既可以进行纠错，也可以平衡召回率和查准率之间的矛盾。</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/elasticsearch/">Elasticsearch</a>
+        
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    <div class="disqus-container">
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "hugo-theme-stack" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (typeof DISQUS == 'object') {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2019 - 
+        
+        2022 随笔记
+    </section>
+    
+    <section class="powerby">
+        
+            让知识汇聚成大海 <br/>
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        主题 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.12.0">Stack</a></b> 由 <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a> 设计
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#定义">定义</a>
+      <ol>
+        <li><a href="#精确率">精确率</a></li>
+        <li><a href="#召回率">召回率</a></li>
+        <li><a href="#响应速度">响应速度</a></li>
+      </ol>
+    </li>
+    <li><a href="#like-模糊查询">like 模糊查询</a>
+      <ol>
+        <li><a href="#效率差">效率差</a></li>
+        <li><a href="#召回率低">召回率低</a></li>
+        <li><a href="#结论">结论</a></li>
+      </ol>
+    </li>
+    <li><a href="#completion-suggester">Completion Suggester</a>
+      <ol>
+        <li><a href="#mapping">Mapping</a></li>
+        <li><a href="#查询">查询</a></li>
+        <li><a href="#测试">测试</a>
+          <ol>
+            <li><a href="#1输入正确的前缀部分太古">1.输入正确的前缀部分：太古</a></li>
+            <li><a href="#2输入的前缀部分有错误字符太谷城">2.输入的前缀部分有错误字符：太谷城</a></li>
+            <li><a href="#3指定的地址不存在太古城道10號">3.指定的地址不存在：太古城道10號</a></li>
+            <li><a href="#4英文名有部分有误kam-tan-terrace">4.英文名有部分有误：KAM Tan TERRACE</a></li>
+          </ol>
+        </li>
+        <li><a href="#总结">总结</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
