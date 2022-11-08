@@ -1,47 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='定义 现代的搜索引擎，一般会具备“Suggest As You Type&amp;quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。 例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。 当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。 例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。 要实现以上的功能，就需要解决以下三个问题：
-精确率 也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。
-召回率 召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。
-响应速度 响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。
-like 模糊查询 使用数据库like实现，语法如下：
-1 select * from table where name like ‘%太古%’ or address ‘%太古%’... 使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。
-效率差 不管是使用前缀，中缀还是后缀like查询，效率都不尽人意。如果涉及多个字段还需要使用or查询。在查询数据量稍微大一点的表，查询速度很难让人接受。
-召回率低 like查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。
-结论 使用like实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。
-Completion Suggester 我们先看下官网对于Completion Suggester的介绍：
-The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters.'><title>推荐搜索:Completion Suggester</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='现代的搜索引擎，一般会具备“Suggest As You Type&#34;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。'><title>推荐搜索:Completion Suggester</title>
 
 <link rel='canonical' href='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/'>
 
 <link rel="stylesheet" href="/scss/style.min.ac77dcf8b111b51da39a92990f431923f210f3876d85798a2125667f96dc33a4.css"><meta property='og:title' content='推荐搜索:Completion Suggester'>
-<meta property='og:description' content='定义 现代的搜索引擎，一般会具备“Suggest As You Type&amp;quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。 例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。 当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。 例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。 要实现以上的功能，就需要解决以下三个问题：
-精确率 也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。
-召回率 召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。
-响应速度 响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。
-like 模糊查询 使用数据库like实现，语法如下：
-1 select * from table where name like ‘%太古%’ or address ‘%太古%’... 使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。
-效率差 不管是使用前缀，中缀还是后缀like查询，效率都不尽人意。如果涉及多个字段还需要使用or查询。在查询数据量稍微大一点的表，查询速度很难让人接受。
-召回率低 like查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。
-结论 使用like实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。
-Completion Suggester 我们先看下官网对于Completion Suggester的介绍：
-The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters.'>
+<meta property='og:description' content='现代的搜索引擎，一般会具备“Suggest As You Type&#34;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。'>
 <meta property='og:url' content='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/'>
 <meta property='og:site_name' content='随笔记'>
 <meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Elasticsearch' /><meta property='article:tag' content='数据库' /><meta property='article:published_time' content='2022-11-08T14:44:58&#43;08:00'/><meta property='article:modified_time' content='2022-11-08T14:44:58&#43;08:00'/><meta property='og:image' content='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo.png' />
 <meta name="twitter:title" content="推荐搜索:Completion Suggester">
-<meta name="twitter:description" content="定义 现代的搜索引擎，一般会具备“Suggest As You Type&amp;quot;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。 例如，我们在京东上搜索关键字”世界上“，下方会根据我们是搜索内容进行联想匹配，出现的结果就是以”世界上“为前缀的搜索结果。 当输入的文字有个别错误的时候，也可以进行适当的纠错，返回我们预期想要搜索的内容。 例如，我们搜索”平果手机“，出现的匹配内容都是以”苹果手机“为开头的，忽略了个别错别字。 要实现以上的功能，就需要解决以下三个问题：
-精确率 也叫查准率，这个也是最基本的，返回的结果需要是用户想要看到的。
-召回率 召回率也叫查全率，少量的字符错误是可以被允许的，提供纠错能力可以提升用户体验，也这样提高召回率，不会发生个别错误字符导致没有结果返回的情况。但是需要注意的是，召回率和查准率是相互制约的，召回率越高会导致精确率降低，需要做出权衡，合理取舍。
-响应速度 响应速度是很容易被忽略，但事实上是很重要的。响度速度会很直观的影响到用户体验。用户输入内容时，键盘敲击速度是很快的，我们需要根据输入的内容提供结果，响应速度就得跟得上。
-like 模糊查询 使用数据库like实现，语法如下：
-1 select * from table where name like ‘%太古%’ or address ‘%太古%’... 使用数据库模糊查询可以实现根据内容返回包含关键字的结果，实现起来非常简单，但是缺点也很明显，主要体现下面两个方面。
-效率差 不管是使用前缀，中缀还是后缀like查询，效率都不尽人意。如果涉及多个字段还需要使用or查询。在查询数据量稍微大一点的表，查询速度很难让人接受。
-召回率低 like查询返回的结果必须包含指定的内容，如果有一个字符不匹配，就有可能查询不到结果。也就是说，如果用户输错了一个字符，那下方的搜索建议就会没有内容，用户体验就会变得很差。
-结论 使用like实现自动完成，只限于数据量不大的场景，优点是实现简单。但是要检索的数据量稍微大一点的就不适合了，需要使用其他的替代方案来实现快速检索和提高用户体验。
-Completion Suggester 我们先看下官网对于Completion Suggester的介绍：
-The completion suggester provides auto-complete/search-as-you-type functionality. This is a navigational feature to guide users to relevant results as they are typing, improving search precision. It is not meant for spell correction or did-you-mean functionality like the term or phrase suggesters."><meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:description" content="现代的搜索引擎，一般会具备“Suggest As You Type&#34;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。"><meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content='https://weekthree.github.io/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/logo.png' />
     <link rel="shortcut icon" href="/img/favicon.ico" />
 
@@ -298,6 +268,10 @@ The completion suggester provides auto-complete/search-as-you-type functionality
             <a href="/p/%E6%8E%A8%E8%8D%90%E6%90%9C%E7%B4%A2completion-suggester/">推荐搜索:Completion Suggester</a>
         </h2>
     
+        
+        <h3 class="article-subtitle">
+            现代的搜索引擎，一般会具备“Suggest As You Type&#34;功能，即在用户输入搜索的过程中，进行自动补全或者纠错。通过协助用户输入更精准的关键词，提供后续全文搜索阶段文档匹配程度。
+        </h3>
         
     </div>
 
